@@ -151,7 +151,9 @@
   .bgtool label { display: flex; justify-content: space-between; margin: 10px 0 2px; color: var(--muted); }
   .bgtool label span { color: var(--text); font-variant-numeric: tabular-nums; }
   .bgtool input[type=range] { width: 100%; padding: 0; border: 0; accent-color: var(--accent); background: transparent; }
-  .bgtool button { margin-top: 12px; width: 100%; padding: 6px; border-radius: 4px; border: 1px solid var(--accent); background: var(--accent); color: #fff; font-weight: 600; }
+  .bgtool button { margin-top: 12px; width: 100%; padding: 7px; border-radius: 4px; border: 1px solid var(--line); background: var(--panel-2); color: var(--text); font-weight: 600; transition: border-color .15s, background .15s; }
+  .bgtool button:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .bgtool button.on { border-color: var(--accent); color: var(--accent); }
   .bgtool .note { color: var(--muted); font-size: 11px; margin-top: 4px; }
 
   /* Acceso */
@@ -311,7 +313,8 @@ require([
     oid: P.get("oid")
   };
   const SHARING = CFG.portal + "/sharing";
-  const QUALITY = ["low", "medium", "high"].includes(store.get("quality")) ? store.get("quality") : "medium";
+  const QUALITY = ["low", "medium", "high"].includes(store.get("quality")) ? store.get("quality") : "high";
+  const DEFAULT_MODEL = P.get("default") || "RBC-EP-T01-01";
 
   /* =================== estado =================== */
   let view, scene;
@@ -442,18 +445,17 @@ require([
     updateArtKpi();
     refreshBgTool();
 
-    let first = null;
-    if (CFG.layer) {
-      const q = CFG.layer.toLowerCase();
-      first = models.find((m) => m.title.toLowerCase() === q) || comps.find((c) => c.title.toLowerCase() === q);
-    }
+    // Modelo inicial: el del enlace (?layer=) o, por defecto, RBC-EP-T01-01
+    const byTitle = (t) => {
+      const q = norm(t);
+      return models.find((m) => norm(m.title) === q) || comps.find((c) => norm(c.title) === q) || null;
+    };
+    let first = (CFG.layer && byTitle(CFG.layer)) || byTitle(DEFAULT_MODEL);
     if (first) {
       openPath(first);
       await activate(first);
-      if (CFG.oid && rows.length) {
-        const r = rows.find((x) => String(x._oid) === CFG.oid);
-        if (r) selectRow(r._u, r._oid, true);
-      }
+      autoSel = { token: loadToken, oid: CFG.oid };   // seleccionar la primera fila al llegar los datos
+      zoomNode(first);
     }
   }
 
@@ -711,7 +713,14 @@ require([
     renderTable();
     updateKpis();
     if (chartState && chartState.fromRows) renderChart();
+    // Selección automática al abrir: solo una vez y solo si el usuario no eligió otra cosa
+    if (autoSel && autoSel.token === loadToken && !selKey && rows.length) {
+      const r = (autoSel.oid && rows.find((x) => String(x._oid) === String(autoSel.oid))) || rows[0];
+      autoSel = null;
+      selectRow(r._u, r._oid, false);
+    }
   }
+  let autoSel = null;
 
   function fmt(fname, v) {
     if (v === null || v === undefined || v === "") return "—";
@@ -1011,7 +1020,9 @@ require([
     sel.innerHTML = opts.length
       ? opts.map((f) => `<option value="${esc(f.name)}">${esc(fieldLabel(f))}${NUM.has(f.type) ? " (núm.)" : ""}</option>`).join("")
       : "<option value=''>Sin parámetros</option>";
-    const pref = opts.find((f) => FAMILY_RX.test(f.name) || FAMILY_RX.test(f.alias || "")) || opts[0];
+    // Por defecto: metrado de volumen; si el modelo no lo tiene, Family
+    const pref = opts.find((f) => VOL_RX.test(fKey(f)))
+              || opts.find((f) => FAMILY_RX.test(f.name) || FAMILY_RX.test(f.alias || "")) || opts[0];
     if (pref) sel.value = pref.name;
     const can = units.some(canColor);
     $("#btnColor").disabled = !can || !opts.length; $("#btnReset").disabled = !can;
@@ -1215,6 +1226,7 @@ require([
     q("#rB").value = bgState.b; q("#rO").value = bgState.o; q("#rG").value = bgState.g;
     q("#vB").textContent = bgState.b + "%"; q("#vO").textContent = bgState.o + "%"; q("#vG").textContent = bgState.g + "%";
     q("#bgPlain").textContent = bgState.plain ? "Restaurar fondo" : "Fondo blanco";
+    q("#bgPlain").classList.toggle("on", bgState.plain);
   }
 
   function applyBg() {
