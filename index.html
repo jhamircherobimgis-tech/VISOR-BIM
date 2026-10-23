@@ -311,6 +311,7 @@ require([
     oid: P.get("oid")
   };
   const SHARING = CFG.portal + "/sharing";
+  const QUALITY = ["low", "medium", "high"].includes(store.get("quality")) ? store.get("quality") : "medium";
 
   /* =================== estado =================== */
   let view, scene;
@@ -419,15 +420,20 @@ require([
     document.title = (scene.portalItem.title || "Visor") + " · BIM";
 
     view = new SceneView({
-      container: "view", map: scene, popupEnabled: false, qualityProfile: "high",
-      highlightOptions: { color: [0, 190, 255, 1], haloOpacity: 1, fillOpacity: 0.3 }
+      container: "view", map: scene, popupEnabled: false,
+      qualityProfile: QUALITY,
+      highlightOptions: { color: [0, 190, 255, 1], haloOpacity: 1, fillOpacity: 0.35 }
     });
+    // Sin sombras proyectadas: aliviana mucho el dibujo de modelos BIM
+    try { view.environment.lighting.directShadowsEnabled = false; } catch (e) {}
     view.ui.add(new Home({ view }), "top-left");
     view.ui.add(new Expand({ view, content: buildBgTool(), expandTooltip: "Fondo y transparencia", group: "tools", expandIcon: "basemap" }), "top-right");
     view.ui.add(new Expand({ view, content: new Slice({ view }), expandTooltip: "Corte (slice)", group: "tools" }), "top-right");
     view.ui.add(new Expand({ view, content: new DirectLineMeasurement3D({ view }), expandTooltip: "Medir distancia", group: "tools", expandIcon: "measure-line" }), "top-right");
     view.ui.add(new Expand({ view, content: new AreaMeasurement3D({ view }), expandTooltip: "Medir área", group: "tools", expandIcon: "measure-area" }), "top-right");
-    view.on("click", onViewClick);
+    // "immediate-click" responde al instante (no espera a descartar un doble clic)
+    view.on("immediate-click", onViewClick);
+    view.on("pointer-move", onHover);
     if (bgState.plain) applyPlainBg();
 
     try { await scene.loadAll(); } catch (e) { console.warn(e); }
@@ -470,12 +476,9 @@ require([
       if (l.type === "building-scene") {
         l.allSublayers.forEach((s) => {
           if (s.type !== "building-component") return;
-          try { s.outFields = ["*"]; } catch (e) {}
           const c = { node: "comp", id: "k" + comps.length, title: s.title, layer: s, model: m, kind: "building" };
           comps.push(c); m.comps.push(c);
         });
-      } else if (l.type === "scene" || l.type === "feature") {
-        try { l.outFields = ["*"]; } catch (e) {}
       }
       models.push(m); cat.models.push(m);
     };
@@ -615,8 +618,20 @@ require([
     const code = (f) => { const m = fKey(f).match(/(\d\d)_(\d\d)_DEO_/i); return m ? m[1] + m[2] : "9999"; };
     const deo = all.filter((f) => DEO_RX.test(f.name) || DEO_RX.test(f.alias || "")).sort((a, b) => code(a).localeCompare(code(b)));
     const fam = all.find((f) => FAMILY_RX.test(f.name) || FAMILY_RX.test(f.alias || ""));
+    shownAll = !deo.length;
     if (deo.length) shown = (fam ? [fam] : []).concat(deo);
     else shown = all.filter((f) => !/^shape|geometry/i.test(f.name) && !["geometry", "blob", "raster"].includes(f.type));
+  }
+  let shownAll = false;
+
+  /* Pide al servidor solo los campos que se muestran (no los 90+ de Revit) */
+  function setOutFields() {
+    units.forEach((u) => {
+      try {
+        const names = new Set((u.layer.fields || []).map((f) => f.name));
+        u.layer.outFields = shownAll ? ["*"] : [oidField(u)].concat(shown.map((f) => f.name).filter((n) => names.has(n)));
+      } catch (e) {}
+    });
   }
   const findField = (rx) => shown.find((f) => rx.test(fKey(f)));
 
@@ -641,23 +656,31 @@ require([
     if (token !== loadToken) return;
 
     buildFields();
+    setOutFields();
     fillFieldSelect();
 
-    for (const u of units) {
-      const k = unitKind(u);
-      if (k !== "scene" && k !== "building") continue;
-      lvFor(u).then((lv) => {
+    // Releer la tabla solo cuando la cámara se detiene (no en cada tesela)
+    if (units.some((u) => unitKind(u) === "scene" || unitKind(u) === "building")) {
+      updWatches.push(reactiveUtils.when(() => view.stationary, () => { if (token === loadToken) scheduleTable(); }));
+      units.forEach((u) => lvFor(u).then((lv) => {
         if (!lv || token !== loadToken) return;
-        updWatches.push(reactiveUtils.watch(() => lv.updating, (up) => { if (!up && token === loadToken) scheduleTable(); }));
-      });
+        updWatches.push(reactiveUtils.when(() => !lv.updating, () => { if (token === loadToken) scheduleTable(); }));
+      }));
     }
-    await loadTable(token);
-    if (token === loadToken) renderChart();
+    // La tabla carga en segundo plano: la selección y el clic no esperan por ella
+    loadTable(token).then(() => { if (token === loadToken) renderChart(); });
   }
 
   /* =================== tabla =================== */
   let tblTimer;
-  function scheduleTable() { clearTimeout(tblTimer); tblTimer = setTimeout(() => units.length && loadTable(loadToken), 450); }
+  function scheduleTable() {
+    clearTimeout(tblTimer);
+    tblTimer = setTimeout(() => {
+      if (!units.length) return;
+      if (view && !view.stationary) { scheduleTable(); return; }
+      loadTable(loadToken);
+    }, 900);
+  }
 
   async function loadTable(token) {
     const out = [];
@@ -808,24 +831,57 @@ require([
     return comps.find((c) => c.layer === lyr) || models.find((m) => m.layer === lyr && m.kind !== "building-scene") || null;
   }
 
-  async function onViewClick(e) {
-    let ht;
-    try { ht = await view.hitTest(e); } catch (err) { return; }
-    let hit = null, unit = null;
-    for (const r of ht.results || []) {
+  /* Capas 3D (BIM, objetos 3D, multipatch): tienen prioridad al hacer clic,
+     así un clic sobre un muro no lo "roba" una capa 2D dibujada sobre el terreno */
+  const solidLayers = () => models
+    .filter((m) => m.kind === "building-scene" || (m.kind === "scene" && m.layer.geometryType !== "point") ||
+                   (m.kind === "feature" && m.layer.geometryType === "multipatch"))
+    .filter((m) => m.layer.visible !== false)
+    .map((m) => m.layer);
+
+  function firstHit(ht) {
+    for (const r of (ht && ht.results) || []) {
       if (!r.graphic) continue;
-      unit = findUnit(r.graphic.sourceLayer) || findUnit(r.graphic.layer);
-      if (unit) { hit = r.graphic; break; }
+      const unit = findUnit(r.graphic.sourceLayer) || findUnit(r.graphic.layer);
+      if (unit) return { unit, g: r.graphic };
     }
-    if (!unit) { clearSelection(); return; }
-    const oid = typeof hit.getObjectId === "function" ? hit.getObjectId() : hit.attributes && hit.attributes[oidField(unit)];
+    return null;
+  }
+
+  async function pick(e, solidOnly) {
+    const inc = solidLayers();
+    let h = null;
+    if (inc.length) { try { h = firstHit(await view.hitTest(e, { include: inc })); } catch (err) {} }
+    if (!h && !solidOnly) { try { h = firstHit(await view.hitTest(e)); } catch (err) {} }
+    return h;
+  }
+
+  let clickSeq = 0;
+  async function onViewClick(e) {
+    const seq = ++clickSeq;
+    const h = await pick(e, false);
+    if (seq !== clickSeq) return;            // hubo un clic más reciente
+    if (!h) { clearSelection(); return; }
+    const { unit, g } = h;
+    const oid = typeof g.getObjectId === "function" ? g.getObjectId() : g.attributes && g.attributes[oidField(unit)];
     let idx = units.indexOf(unit);
     if (idx < 0) {
       await activate(unit.node === "comp" ? unit.model : unit);
+      if (seq !== clickSeq) return;
       idx = units.indexOf(unit);
       if (idx < 0) return;
     }
-    selectRow(idx, oid, false, hit.attributes);
+    selectRow(idx, oid, false, g.attributes);
+  }
+
+  /* Cursor de mano al pasar sobre un sólido (consulta liviana y espaciada) */
+  let hoverBusy = false, hoverLast = 0;
+  function onHover(e) {
+    const now = Date.now();
+    if (hoverBusy || now - hoverLast < 150 || view.interacting) return;
+    hoverBusy = true; hoverLast = now;
+    pick(e, true).then((h) => { view.container.style.cursor = h ? "pointer" : ""; })
+      .finally(() => { hoverBusy = false; });
   }
 
   async function fetchAttrs(u, oid) {
@@ -837,10 +893,19 @@ require([
         return r.features[0] && r.features[0].attributes;
       }
       const lv = await lvFor(u);
-      const q = lv.createQuery ? lv.createQuery() : {};
-      q.objectIds = [oid]; q.outFields = ["*"]; q.returnGeometry = false;
-      const r = await lv.queryFeatures(q);
-      return r.features[0] && r.features[0].attributes;
+      const query = async () => {
+        const q = lv.createQuery ? lv.createQuery() : {};
+        q.objectIds = [oid]; q.outFields = ["*"]; q.returnGeometry = false;
+        const r = await lv.queryFeatures(q);
+        return r.features[0] && r.features[0].attributes;
+      };
+      let a = await query();
+      // Si los parámetros recién pedidos aún no llegan, esperar a que la capa termine de cargarlos
+      if (!shownAll && (!a || !shown.some((f) => f.name in a))) {
+        await withTimeout(reactiveUtils.whenOnce(() => !lv.updating), 5000);
+        a = (await query()) || a;
+      }
+      return a;
     } catch (e) { return null; }
   }
 
@@ -849,6 +914,7 @@ require([
     const u = units[ui]; if (!u) return;
     selKey = rowKey(ui, oid);
     if (hl) { hl.remove(); hl = null; }
+    $("#props").innerHTML = '<div class="empty">Leyendo parámetros…</div>';
     try { const lv = await lvFor(u); if (lv && lv.highlight) hl = lv.highlight(oid); } catch (e) {}
     const attrs = (await fetchAttrs(u, oid)) || fallback || null;
     renderProps(ui, oid, attrs);
@@ -1122,12 +1188,21 @@ require([
       <div class="note" id="nO"></div>
       <label>Terreno <span id="vG">100%</span></label><input type="range" id="rG" min="0" max="100" value="100">
       <div class="note">Con el terreno transparente puedes ver la parte enterrada del sólido.</div>
-      <button id="bgPlain">Fondo blanco</button>`;
+      <button id="bgPlain">Fondo blanco</button>
+      <label style="margin-top:14px">Calidad gráfica</label>
+      <select id="qSel" style="width:100%">
+        <option value="low">Baja — más rápida</option>
+        <option value="medium">Media — equilibrada</option>
+        <option value="high">Alta — más detalle</option>
+      </select>
+      <div class="note">Al cambiarla el visor se recarga.</div>`;
     const q = (s) => bgNode.querySelector(s);
     q("#rB").oninput = (e) => { bgState.b = +e.target.value; applyBg(); };
     q("#rO").oninput = (e) => { bgState.o = +e.target.value; applyBg(); };
     q("#rG").oninput = (e) => { bgState.g = +e.target.value; applyBg(); };
     q("#bgPlain").onclick = togglePlain;
+    q("#qSel").value = QUALITY;
+    q("#qSel").onchange = (e) => { store.set("quality", e.target.value); location.reload(); };
     return bgNode;
   }
 
