@@ -1282,5 +1282,21 @@ require([
   start();
 });
 </script>
+<script>
+  /* Oculta el ID del ítem, por ejemplo "(4b6ffabf…)", en el cuadro de inicio de sesión de ArcGIS */
+  (function () {
+    var RX = /\s*\(([0-9a-f]{32})\)/gi;
+    function clean(root) {
+      var w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), n;
+      while ((n = w.nextNode())) { if (RX.test(n.nodeValue)) { RX.lastIndex = 0; n.nodeValue = n.nodeValue.replace(RX, ""); } RX.lastIndex = 0; }
+    }
+    new MutationObserver(function (muts) {
+      muts.forEach(function (m) {
+        if (m.type === "characterData") clean(m.target.parentNode || m.target);
+        m.addedNodes && m.addedNodes.forEach(function (x) { if (x.nodeType === 1 || x.nodeType === 3) clean(x.nodeType === 3 ? x.parentNode : x); });
+      });
+    }).observe(document.body, { childList: true, subtree: true, characterData: true });
+  })();
+</script>
 </body>
 </html>
