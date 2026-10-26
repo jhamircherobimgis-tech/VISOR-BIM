@@ -1,1302 +1,1429 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Visor BIM</title>
-<link id="esri-theme" rel="stylesheet" href="https://js.arcgis.com/4.30/esri/themes/light/main.css">
-<script>
-  (function () {
-    var p = new URLSearchParams(location.search), t = p.get('theme');
-    if (t !== 'dark' && t !== 'light') { try { t = localStorage.getItem('bimdash.theme'); } catch (e) {} }
-    if (t !== 'dark') t = 'light';
-    document.documentElement.setAttribute('data-theme', t);
-    document.getElementById('esri-theme').href = 'https://js.arcgis.com/4.30/esri/themes/' + t + '/main.css';
-  })();
-</script>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Corredor Vial N°22 · Sector A</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/dark/main.css" />
 <style>
-  :root {
-    --bg: #f3f4f6; --panel: #ffffff; --panel-2: #f6f7f9; --line: #e1e4e8;
-    --text: #1f2328; --muted: #6b7280; --accent: #0b6fb8; --accent-soft: #e3f0fa;
-    --shadow: 0 1px 2px rgba(0,0,0,.06);
+  :root{
+    --bg:#0e1419; --panel:#141c23; --panel-2:#1a242d; --line:#253340; --line-2:#2f4050;
+    --text:#e6edf3; --muted:#8b9bab; --faint:#5d6d7c;
+    --accent:#f2b134; --accent-ink:#1b1405; --accent-soft:rgba(242,177,52,.14);
+    --ok:#4cc38a;
+    --c-prog:#f2b134; --c-alc:#4ea1ff; --c-pte:#c084fc; --c-sen:#facc15; --c-aux:#4cc38a;
+    --c-acc:#2dd4bf; --c-geo:#f87171; --c-mej:#fb923c; --c-can:#b8a48a; --c-otr:#6b7b8a;
+    --mono:"IBM Plex Mono",ui-monospace,monospace;
   }
-  :root[data-theme="dark"] {
-    --bg: #121417; --panel: #1c1f23; --panel-2: #23272c; --line: #31363d;
-    --text: #e6e8eb; --muted: #9aa3ad; --accent: #4aa3e8; --accent-soft: #1b3347;
-    --shadow: none;
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:14px/1.45 "IBM Plex Sans",system-ui,sans-serif;overflow:hidden}
+  button{font:inherit;color:inherit}
+  .app{display:grid;grid-template-rows:56px 1fr;height:100%}
+  header{display:flex;align-items:center;gap:14px;padding:0 16px;background:var(--panel);border-bottom:1px solid var(--line)}
+  .mark{width:30px;height:30px;border-radius:7px;background:var(--accent);display:grid;place-items:center;color:var(--accent-ink);font-weight:600;font-size:13px;flex:none}
+  .ttl{display:flex;flex-direction:column;min-width:0}
+  .ttl h1{margin:0;font-size:16px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ttl span{font-size:11.5px;color:var(--muted);letter-spacing:.4px;text-transform:uppercase}
+  .hspace{flex:1}
+  .status{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);white-space:nowrap}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--faint)}
+  .dot.on{background:var(--ok);box-shadow:0 0 0 3px rgba(76,195,138,.18)}
+  .btn{background:var(--panel-2);border:1px solid var(--line-2);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:12.5px}
+  .btn:hover{border-color:var(--accent)}
+  .body{display:grid;grid-template-columns:370px 1fr;min-height:0}
+  aside{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+  .tabs{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--line)}
+  .tabs button{background:none;border:0;padding:11px 0;cursor:pointer;color:var(--muted);font-weight:500;border-bottom:2px solid transparent}
+  .tabs button.on{color:var(--text);border-bottom-color:var(--accent)}
+  .pane{display:none;flex-direction:column;min-height:0;flex:1;overflow:auto}
+  .pane.on{display:flex}
+  .sec{padding:13px 16px;border-bottom:1px solid var(--line)}
+  .sec h2{margin:0 0 10px;font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center}
+  .tramo-card .big{font-size:22px;font-weight:600}
+  .tramo-card .rng{font-family:var(--mono);color:var(--accent);font-size:12.5px;margin-top:2px}
+  .search{display:flex;gap:6px}
+  .search input{flex:1;min-width:0;background:var(--bg);border:1px solid var(--line-2);border-radius:8px;padding:8px 10px;color:var(--text);font:inherit}
+  .search input:focus{outline:none;border-color:var(--accent)}
+  .hint{font-size:11.5px;color:var(--faint);margin-top:6px}
+  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+  .kpi{display:flex;flex-direction:column;gap:2px;background:var(--panel-2);border:1px solid var(--line);border-left:3px solid var(--k);border-radius:8px;padding:8px 9px;cursor:pointer;text-align:left}
+  .kpi:hover{border-color:var(--line-2);border-left-color:var(--k)}
+  .kpi.sel{background:var(--accent-soft);border-color:var(--accent);border-left-color:var(--k)}
+  .kpi.off{opacity:.38;cursor:default}
+  .kpi b{font-size:19px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.1}
+  .kpi small{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bars{display:flex;align-items:flex-end;gap:3px;height:70px}
+  .bar{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;height:100%;justify-content:flex-end}
+  .bar div{width:100%;background:var(--line-2);border-radius:3px 3px 0 0;min-height:2px}
+  .bar.sel div{background:var(--accent)}
+  .bar span{font-size:10px;color:var(--faint);font-family:var(--mono)}
+  .bar em{font-style:normal;font-size:10px;color:var(--muted)}
+  .list{padding:6px 8px 12px}
+  .item{display:grid;grid-template-columns:1fr auto;gap:2px 8px;padding:8px 10px;border-radius:8px;cursor:pointer;border:1px solid transparent}
+  .item:hover{background:var(--panel-2)}
+  .item.sel{border-color:var(--accent);background:var(--accent-soft)}
+  .item .n{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .item .p{font-family:var(--mono);font-size:12px;color:var(--accent);text-align:right}
+  .item .s{grid-column:1/-1;font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .empty{color:var(--faint);font-size:12.5px;padding:12px 10px}
+  /* Capas / modelos */
+  .grp{padding:10px 12px 4px}
+  .grp h3{margin:0 4px 6px;font-size:11px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:8px}
+  .grp h3 i{width:9px;height:9px;border-radius:2px}
+  .lyr{display:grid;grid-template-columns:auto 1fr auto auto;align-items:center;gap:9px;padding:7px 8px;border-radius:8px}
+  .lyr:hover{background:var(--panel-2)}
+  .lyr .nm{min-width:0}
+  .lyr .nm b{display:block;font-weight:500;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .lyr .nm small{display:block;font-size:11px;color:var(--muted)}
+  .tag{font-size:10px;padding:1px 6px;border-radius:4px;border:1px solid var(--line-2);color:var(--muted);margin-right:4px}
+  .tag.m3d{border-color:var(--c-pte);color:var(--c-pte)}
+  .ico{background:none;border:1px solid var(--line-2);border-radius:6px;width:28px;height:26px;cursor:pointer;color:var(--muted);display:grid;place-items:center}
+  .ico:hover{border-color:var(--accent);color:var(--text)}
+  .sw{width:34px;height:20px;border-radius:10px;background:var(--line-2);border:0;position:relative;cursor:pointer;flex:none}
+  .sw::after{content:"";position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:#cfd8e0;transition:left .15s}
+  .sw.on{background:var(--accent)}
+  .sw.on::after{left:17px;background:#fff}
+  main{position:relative;min-width:0;min-height:0}
+  #viewDiv{position:absolute;inset:0}
+  .strip{position:absolute;top:12px;left:60px;right:300px;display:flex;gap:4px;overflow-x:auto;padding:4px;background:rgba(14,20,25,.85);backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:12px;scrollbar-width:thin}
+  .tr{flex:1 0 62px;border:1px solid var(--line-2);background:var(--panel);border-radius:8px;padding:5px 6px;cursor:pointer;text-align:center;min-width:62px}
+  .tr b{display:block;font-size:13px}
+  .tr span{display:block;font-family:var(--mono);font-size:10px;color:var(--muted);white-space:nowrap}
+  .tr:hover{border-color:var(--accent)}
+  .tr.sel{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+  .tr.sel span{color:var(--accent-ink)}
+  .tr.all{flex:0 0 70px}
+  .amb{position:absolute;top:12px;right:12px;width:272px;background:rgba(20,28,35,.94);backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  .amb h3{margin:0 0 10px;font-size:11px;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;display:flex;justify-content:space-between;cursor:pointer}
+  .amb.min .ambb{display:none}
+  .amb.min h3{margin:0}
+  .seg{display:grid;grid-template-columns:repeat(3,1fr);background:var(--bg);border:1px solid var(--line-2);border-radius:8px;padding:2px;margin-bottom:8px}
+  .seg button{border:0;background:none;padding:5px 0;border-radius:6px;cursor:pointer;font-size:12.5px;color:var(--muted)}
+  .seg button.on{background:var(--panel-2);color:var(--text);box-shadow:inset 0 0 0 1px var(--line-2)}
+  .row{display:grid;grid-template-columns:78px 1fr 40px;align-items:center;gap:8px;margin:7px 0;font-size:12.5px}
+  .row label{color:var(--muted)}
+  .row output{font-family:var(--mono);font-size:11.5px;text-align:right}
+  input[type=range]{width:100%;accent-color:var(--accent)}
+  .tog{display:flex;align-items:center;justify-content:space-between;margin-top:9px;font-size:12.5px;color:var(--muted)}
+  .ficha{position:absolute;right:12px;bottom:24px;width:340px;max-height:58%;display:none;flex-direction:column;background:rgba(20,28,35,.97);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+  .ficha.show{display:flex}
+  .fh{padding:12px 14px;border-bottom:1px solid var(--line);display:grid;grid-template-columns:1fr auto;gap:4px}
+  .fh h4{margin:0;font-size:15px;font-weight:600}
+  .badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+  .badge i{width:8px;height:8px;border-radius:2px}
+  .loc{grid-column:1/-1;font-family:var(--mono);font-size:12px;color:var(--accent)}
+  .x{background:none;border:0;color:var(--muted);cursor:pointer;font-size:18px;line-height:1;align-self:start}
+  .fb{overflow:auto;padding:4px 0}
+  .fb table{width:100%;border-collapse:collapse;font-size:12.5px}
+  .fb td{padding:5px 14px;border-bottom:1px solid rgba(37,51,64,.6);vertical-align:top}
+  .fb td:first-child{color:var(--muted);width:44%;word-break:break-word}
+  .fb td:last-child{word-break:break-word}
+  .ff{display:flex;gap:6px;padding:10px 14px;border-top:1px solid var(--line)}
+  .toast{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);background:rgba(20,28,35,.96);border:1px solid var(--line-2);border-radius:10px;padding:8px 14px;font-size:12.5px;display:none;max-width:80%}
+  .toast.show{display:block}
+  .loading{position:absolute;inset:0;display:grid;place-items:center;background:rgba(14,20,25,.7);z-index:5;font-size:13px;color:var(--muted);text-align:center}
+  .loading.hide{display:none}
+  .spin{width:28px;height:28px;border:3px solid var(--line-2);border-top-color:var(--accent);border-radius:50%;animation:s 1s linear infinite;margin:0 auto 10px}
+  @keyframes s{to{transform:rotate(360deg)}}
+  dialog{background:var(--panel);color:var(--text);border:1px solid var(--line-2);border-radius:12px;max-width:820px;width:92vw;max-height:80vh;padding:0}
+  dialog::backdrop{background:rgba(0,0,0,.55)}
+  .dh{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line)}
+  .db{padding:12px 16px;overflow:auto;max-height:66vh;font-size:12.5px}
+  .db table{width:100%;border-collapse:collapse}
+  .db th,.db td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+  .db th{color:var(--muted);font-weight:500;font-size:11.5px;text-transform:uppercase}
+  .db code{font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+  @media (max-width:900px){
+    .body{grid-template-columns:1fr;grid-template-rows:1fr 46%}
+    aside{order:2;border-right:0;border-top:1px solid var(--line)}
+    .strip{right:12px;left:12px}
+    .amb{top:auto;bottom:12px;right:12px;left:12px;width:auto}
+    .ficha{left:12px;right:12px;width:auto;bottom:auto;top:76px}
+    .status .lbl{display:none}
   }
-  * { box-sizing: border-box; }
-  html, body { height: 100%; }
-  body {
-    margin: 0; background: var(--bg); color: var(--text);
-    font: 13px/1.4 "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
-    display: grid; grid-template-rows: 46px auto 1fr; overflow: hidden;
-  }
-  button { font: inherit; color: inherit; cursor: pointer; }
-  input, select { font: inherit; color: var(--text); background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 5px 8px; }
-  input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
-
-  header { display: flex; align-items: center; gap: 10px; padding: 0 12px; background: var(--panel); border-bottom: 1px solid var(--line); min-width: 0; }
-  .logo { width: 28px; height: 28px; border-radius: 6px; background: var(--accent); color: #fff; font-weight: 700; font-size: 11px; display: grid; place-items: center; flex: none; }
-  .htitle { min-width: 0; flex: 1; }
-  .htitle b { display: block; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .htitle span { color: var(--muted); font-size: 11px; }
-  .hbtn { border: 1px solid var(--line); background: var(--panel-2); border-radius: 4px; padding: 4px 10px; white-space: nowrap; }
-  .hbtn:hover { border-color: var(--accent); }
-  .user { color: var(--muted); font-size: 12px; white-space: nowrap; }
-
-  /* KPIs */
-  #kpis { display: grid; grid-template-columns: 1.6fr repeat(4, minmax(0,1fr)); gap: 8px; padding: 8px 10px; }
-  .kpi { background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 6px; padding: 8px 12px; box-shadow: var(--shadow); min-width: 0; }
-  .kpi .l { color: var(--muted); font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .kpi .v { font-size: 20px; font-weight: 600; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
-  .kpi .v small { font-size: 12px; font-weight: 500; color: var(--muted); }
-  .kpi .s { color: var(--muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-  main { display: grid; grid-template-columns: 280px minmax(0,1fr) 350px; gap: 8px; padding: 0 10px 10px; min-height: 0; }
-  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; box-shadow: var(--shadow); display: flex; flex-direction: column; min-height: 0; min-width: 0; overflow: hidden; }
-  .card-h { display: flex; align-items: center; gap: 6px; padding: 8px 10px; border-bottom: 1px solid var(--line); font-weight: 600; min-height: 38px; }
-  .card-h .sp { flex: 1; }
-  .card-h small { font-weight: 400; color: var(--muted); }
-  .card-b { flex: 1; overflow: auto; min-height: 0; }
-  .center { display: grid; grid-template-rows: minmax(0,1fr) 230px; gap: 8px; min-height: 0; min-width: 0; }
-  .right { display: grid; grid-template-rows: minmax(0,1fr) minmax(0,1.1fr); gap: 8px; min-height: 0; }
-  #view { flex: 1; min-height: 0; }
-
-  /* Árbol */
-  .filter { padding: 8px; border-bottom: 1px solid var(--line); }
-  .filter input { width: 100%; }
-  .sec { padding: 10px 10px 4px; font-size: 10px; font-weight: 700; letter-spacing: .08em; color: var(--accent); text-transform: uppercase; }
-  .row { display: flex; align-items: center; gap: 4px; padding: 4px 6px 4px 4px; cursor: pointer; border-left: 3px solid transparent; min-width: 0; }
-  .row:hover { background: var(--panel-2); }
-  .row.on { background: var(--accent-soft); border-left-color: var(--accent); }
-  .row.l0 { font-weight: 600; }
-  .row.l1 { padding-left: 18px; }
-  .row.l2 { padding-left: 38px; font-size: 12px; }
-  .row .t { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .row .t small { display: block; font-size: 10px; color: var(--muted); font-weight: 400; overflow: hidden; text-overflow: ellipsis; }
-  .row .cnt { color: var(--muted); font-size: 11px; font-weight: 400; }
-  .row .k { font-size: 10px; color: var(--muted); border: 1px solid var(--line); border-radius: 3px; padding: 0 4px; font-weight: 400; }
-  .row input[type=checkbox] { margin: 0 2px; accent-color: var(--accent); }
-  .chev { width: 18px; height: 18px; border: 0; background: none; color: var(--muted); padding: 0; flex: none; transition: transform .15s; font-size: 11px; }
-  .chev.open { transform: rotate(90deg); }
-  .chev.none { visibility: hidden; }
-  .ib { border: 0; background: transparent; padding: 2px 5px; border-radius: 3px; color: var(--muted); flex: none; }
-  .ib:hover { background: var(--line); color: var(--text); }
-
-  /* Tabla */
-  .tbl-wrap { flex: 1; overflow: auto; min-height: 0; }
-  table.grid { border-collapse: collapse; width: max-content; min-width: 100%; font-size: 12px; }
-  .grid th, .grid td { padding: 4px 10px; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; max-width: 260px; overflow: hidden; text-overflow: ellipsis; }
-  .grid th { position: sticky; top: 0; background: var(--panel-2); font-weight: 600; cursor: pointer; z-index: 1; }
-  .grid th:hover { color: var(--accent); }
-  .grid tbody tr { cursor: pointer; }
-  .grid tbody tr:hover { background: var(--panel-2); }
-  .grid tbody tr.sel { background: var(--accent-soft); }
-  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
-  #tblFilter { width: 180px; padding: 3px 8px; }
-  .tbtn { border: 1px solid var(--line); background: var(--panel-2); border-radius: 4px; padding: 3px 8px; font-weight: 400; }
-  .tbtn:hover { border-color: var(--accent); }
-  .tbtn.pri { background: var(--accent); color: #fff; border-color: var(--accent); }
-  .tbtn:disabled { opacity: .45; cursor: default; }
-
-  /* Propiedades */
-  .props-top { padding: 8px 10px; border-bottom: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-  .props-top .id { flex: 1 1 100%; font-weight: 600; }
-  .props-top .id small { color: var(--muted); font-weight: 400; }
-  .prop { display: grid; grid-template-columns: 46% 54%; border-bottom: 1px solid var(--line); }
-  .prop > div { padding: 5px 10px; min-width: 0; overflow-wrap: anywhere; }
-  .prop .pn { color: var(--muted); background: var(--panel-2); font-size: 12px; }
-  .prop .pv { font-weight: 500; }
-  .prop .pv.num { font-variant-numeric: tabular-nums; }
-  .empty { padding: 18px 14px; color: var(--muted); text-align: center; }
-
-  /* Análisis */
-  .chart-ctl { display: flex; gap: 6px; padding: 8px 10px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
-  .chart-ctl select { flex: 1; min-width: 120px; }
-  .bars { padding: 8px 10px; }
-  .bar { display: grid; grid-template-columns: 12px minmax(0,1fr) auto; gap: 6px; align-items: center; margin-bottom: 5px; }
-  .bar .sw { width: 12px; height: 12px; border-radius: 2px; }
-  .bar .lb { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 12px; }
-  .bar .tr { grid-column: 2 / 4; height: 6px; background: var(--panel-2); border-radius: 3px; overflow: hidden; margin-top: -3px; }
-  .bar .fl { height: 100%; background: var(--accent); border-radius: 3px; }
-  .bar .n { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 12px; }
-  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 8px 10px; }
-  .st { background: var(--panel-2); border-radius: 4px; padding: 6px 8px; }
-  .st .l { color: var(--muted); font-size: 10px; text-transform: uppercase; }
-  .st .v { font-weight: 600; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-  .hist { display: flex; align-items: flex-end; gap: 2px; height: 70px; padding: 0 10px; }
-  .hist div { flex: 1; background: var(--accent); border-radius: 2px 2px 0 0; min-height: 1px; }
-  .hist-ax { display: flex; justify-content: space-between; padding: 2px 10px 8px; color: var(--muted); font-size: 11px; }
-  .src { padding: 0 10px 8px; color: var(--muted); font-size: 11px; }
-  .ramp { display: flex; margin: 0 10px 6px; height: 10px; border-radius: 3px; overflow: hidden; }
-  .ramp div { flex: 1; }
-
-  /* Metrado */
-  .met-h { display: flex; align-items: baseline; gap: 8px; padding: 10px 10px 4px; }
-  .met-h b { font-size: 13px; }
-  .met-h .tot { margin-left: auto; font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
-  .met-h .tot small { font-size: 11px; color: var(--muted); font-weight: 500; }
-  table.met { width: calc(100% - 20px); margin: 4px 10px 8px; border-collapse: collapse; font-size: 12px; }
-  .met th { text-align: left; color: var(--muted); font-weight: 600; font-size: 10.5px; text-transform: uppercase; padding: 4px 4px; border-bottom: 1px solid var(--line); }
-  .met td { padding: 5px 4px; border-bottom: 1px solid var(--line); vertical-align: top; }
-  .met td .mbar { height: 4px; background: var(--panel-2); border-radius: 2px; margin-top: 4px; overflow: hidden; }
-  .met td .mbar div { height: 100%; border-radius: 2px; }
-  .met tfoot td { font-weight: 700; border-bottom: 0; }
-  .met .sw { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 6px; }
-
-  /* Herramienta de fondo */
-  .bgtool { padding: 12px; width: 250px; background: var(--panel); color: var(--text); font-size: 12px; }
-  .bgtool b { display: block; margin-bottom: 8px; font-size: 13px; }
-  .bgtool label { display: flex; justify-content: space-between; margin: 10px 0 2px; color: var(--muted); }
-  .bgtool label span { color: var(--text); font-variant-numeric: tabular-nums; }
-  .bgtool input[type=range] { width: 100%; padding: 0; border: 0; accent-color: var(--accent); background: transparent; }
-  .bgtool button { margin-top: 12px; width: 100%; padding: 7px; border-radius: 4px; border: 1px solid var(--line); background: var(--panel-2); color: var(--text); font-weight: 600; transition: border-color .15s, background .15s; }
-  .bgtool button:hover { border-color: var(--accent); background: var(--accent-soft); }
-  .bgtool button.on { border-color: var(--accent); color: var(--accent); }
-  .bgtool .note { color: var(--muted); font-size: 11px; margin-top: 4px; }
-
-  /* Acceso */
-  #gate { position: fixed; inset: 0; background: var(--bg); display: grid; place-items: center; z-index: 50; padding: 16px; }
-  #gate[hidden] { display: none; }
-  .gbox { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 22px; width: min(440px, 100%); box-shadow: 0 8px 30px rgba(0,0,0,.12); }
-  .gbox h2 { margin: 0 0 4px; font-size: 18px; }
-  .gbox p { color: var(--muted); margin: 0 0 14px; }
-  .gbox label { display: block; font-size: 12px; font-weight: 600; margin: 10px 0 4px; }
-  .gbox label small { font-weight: 400; color: var(--muted); }
-  .gbox input { width: 100%; }
-  .gbox .go { margin-top: 16px; width: 100%; padding: 8px; border: 0; border-radius: 4px; background: var(--accent); color: #fff; font-weight: 600; }
-  .gbox .err { color: #d1242f; margin-top: 10px; font-size: 12px; }
-
-  #toast { position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%); background: #222; color: #fff; padding: 8px 14px; border-radius: 6px; font-size: 12px; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 60; max-width: 90vw; }
-  #toast.on { opacity: .95; }
-
-  @media (max-width: 1150px) {
-    main { grid-template-columns: 240px minmax(0,1fr) 300px; }
-    #kpis { grid-template-columns: 1.6fr repeat(2, minmax(0,1fr)); }
-    #kpis .kpi:nth-child(n+4) { display: none; }
-  }
-  @media (max-width: 820px) {
-    body { overflow: auto; grid-template-rows: 46px auto auto; }
-    main { grid-template-columns: 1fr; }
-    .center { grid-template-rows: 420px 260px; }
-    .right { grid-template-rows: 360px 360px; }
-    #treeCard { max-height: 300px; }
-    .user { display: none; }
-  }
+  /* Recorrido virtual */
+  .btn-acc{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+  .btn-acc:hover{filter:brightness(1.08)}
+  .rec{position:absolute;left:50%;transform:translateX(-50%);bottom:28px;width:min(780px,calc(100% - 24px));display:none;
+       background:rgba(20,28,35,.95);backdrop-filter:blur(6px);border:1px solid var(--line-2);border-radius:14px;padding:10px 12px;box-shadow:0 10px 30px rgba(0,0,0,.4);z-index:3}
+  .rec.show{display:block}
+  .rec-top,.rec-mid,.rec-bot{display:flex;align-items:center;gap:8px}
+  .rec-top{margin-bottom:8px}
+  .rec select{flex:1;min-width:0;background:var(--bg);color:var(--text);border:1px solid var(--line-2);border-radius:8px;padding:6px 8px;font:inherit;font-size:12.5px}
+  .rec .seg{margin:0;grid-template-columns:repeat(3,auto)}
+  .rec .seg button{padding:5px 10px}
+  .play{width:40px;height:40px;border-radius:50%;border:0;background:var(--accent);color:var(--accent-ink);font-size:16px;cursor:pointer;flex:none;display:grid;place-items:center}
+  .play:hover{filter:brightness(1.1)}
+  .rec-mid input[type=range]{flex:1}
+  .rec-km{font-family:var(--mono);font-size:20px;font-weight:500;color:var(--accent);min-width:118px;text-align:right;white-space:nowrap}
+  .rec-bot{margin-top:8px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+  .vel{display:flex;gap:3px}
+  .vel button{background:var(--bg);border:1px solid var(--line-2);border-radius:6px;padding:3px 7px;cursor:pointer;font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+  .vel button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+  .alt{display:flex;align-items:center;gap:6px}
+  .alt input{width:90px}
+  .rec-info{flex:1;min-width:200px;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rec-info b{color:var(--text);font-weight:500}
+  .rec-info a{color:var(--accent);cursor:pointer;text-decoration:none}
+  main.rec-on .ficha{bottom:170px;max-height:calc(100% - 260px)}
+  @media (max-width:900px){ .rec-km{font-size:16px;min-width:90px} .rec .seg button{padding:5px 6px} }
 </style>
-<script src="https://js.arcgis.com/4.30/"></script>
 </head>
 <body>
+<div class="app">
+  <header>
+    <div class="mark">22</div>
+    <div class="ttl"><h1>Corredor Vial N°22: SECTOR A</h1><span>Dashboard BIM · Modelo 3D por tramos</span></div>
+    <div class="hspace"></div>
+    <div class="status"><span class="dot" id="stDot"></span><span class="lbl" id="stTxt">Conectando…</span></div>
+    <button class="btn btn-acc" id="btnRec" title="Recorrer la carretera en vehículo">▶ Recorrido virtual</button>
+    <button class="btn" id="btnDiag" title="Diagnóstico de capas y campos">Diagnóstico</button>
+  </header>
+  <div class="body">
+    <aside>
+      <div class="tabs"><button class="on" data-p="pEl">Elementos</button><button data-p="pCa">Capas y modelos</button></div>
 
-<header>
-  <div class="logo">BIM</div>
-  <div class="htitle"><b id="title">Visor BIM</b><span id="subtitle">ArcGIS Online · Escena web</span></div>
-  <span class="user" id="user"></span>
-  <button class="hbtn" id="btnTheme" title="Cambiar entre modo día y modo noche">☾ Noche</button>
-  <button class="hbtn" id="btnLink" title="Copiar enlace al elemento seleccionado">Enlace</button>
-  <button class="hbtn" id="btnOut" hidden>Salir</button>
-</header>
-
-<section id="kpis">
-  <div class="kpi"><div class="l">Modelo seleccionado</div><div class="v" id="kModel">—</div><div class="s" id="kModelS">Selecciona un modelo en la lista</div></div>
-  <div class="kpi"><div class="l">Elementos en vista</div><div class="v" id="kCount">—</div><div class="s" id="kCountS">&nbsp;</div></div>
-  <div class="kpi"><div class="l">Volumen total</div><div class="v" id="kVol">—</div><div class="s" id="kVolS">&nbsp;</div></div>
-  <div class="kpi"><div class="l">Materiales</div><div class="v" id="kMat">—</div><div class="s" id="kMatS">&nbsp;</div></div>
-  <div class="kpi"><div class="l">Obras de arte en escena</div><div class="v" id="kArt">—</div><div class="s" id="kArtS">&nbsp;</div></div>
-</section>
-
-<main>
-  <div class="card" id="treeCard">
-    <div class="card-h">Modelos <span class="sp"></span>
-      <button class="ib" id="expAll" title="Expandir categorías">⊞</button>
-      <button class="ib" id="colAll" title="Contraer todo">⊟</button>
-    </div>
-    <div class="filter"><input id="treeFilter" placeholder="Buscar modelo o categoría…"></div>
-    <div class="card-b" id="tree"></div>
-  </div>
-
-  <div class="center">
-    <div class="card"><div id="view"></div></div>
-    <div class="card">
-      <div class="card-h">
-        <span id="tblTitle">Tabla de elementos</span> <small id="tblInfo"></small>
-        <span class="sp"></span>
-        <input id="tblFilter" placeholder="Filtrar filas…">
-        <button class="tbtn" id="btnRefresh" title="Volver a leer los elementos cargados en la vista">Actualizar</button>
-        <button class="tbtn" id="btnCsv">CSV</button>
+      <div class="pane on" id="pEl">
+        <div class="sec tramo-card">
+          <h2>Ubicación actual</h2>
+          <div class="big" id="tNombre">Todo el corredor</div>
+          <div class="rng" id="tRango">—</div>
+        </div>
+        <div class="sec">
+          <h2>Ir a progresiva o buscar</h2>
+          <div class="search">
+            <input id="q" placeholder="Ej. 12+340 · ALC-05 · C_T01" autocomplete="off" />
+            <button class="btn" id="qGo">Ir</button>
+          </div>
+          <div class="hint" id="qHint">Progresiva (km+m) o texto de cualquier atributo.</div>
+        </div>
+        <div class="sec">
+          <h2>Elementos en el tramo</h2>
+          <div class="kpis" id="kpis"></div>
+        </div>
+        <div class="sec">
+          <h2><span id="chTitle">Distribución por tramo</span></h2>
+          <div class="bars" id="bars"></div>
+        </div>
+        <div class="sec" style="padding-bottom:4px;border-bottom:0">
+          <h2><span id="lTitle">Listado</span><span id="lCount" style="font-family:var(--mono)"></span></h2>
+        </div>
+        <div class="list" id="list"></div>
       </div>
-      <div class="tbl-wrap" id="tbl"><div class="empty">Selecciona un modelo.</div></div>
-    </div>
-  </div>
 
-  <div class="right">
-    <div class="card">
-      <div class="card-h">Propiedades <span class="sp"></span><small id="propCount"></small></div>
-      <div id="propsTop"></div>
-      <div class="card-b" id="props"><div class="empty">Haz clic en un sólido del modelo 3D o en una fila de la tabla para ver sus parámetros.</div></div>
-    </div>
-    <div class="card">
-      <div class="card-h">Análisis por parámetro</div>
-      <div class="chart-ctl">
-        <select id="fieldSel"></select>
-        <button class="tbtn pri" id="btnColor" title="Colorear el modelo 3D según este parámetro">Colorear</button>
-        <button class="tbtn" id="btnReset" title="Restaurar simbología original">Original</button>
+      <div class="pane" id="pCa">
+        <div class="sec" style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn" id="cOn">Encender todo</button>
+          <button class="btn" id="cOff">Apagar todo</button>
+          <button class="btn" id="cM3d">Solo modelos 3D</button>
+        </div>
+        <div id="capas"></div>
       </div>
-      <div class="card-b" id="chart"><div class="empty">Sin datos.</div></div>
-    </div>
+    </aside>
+    <main>
+      <div id="viewDiv"></div>
+      <div class="strip" id="strip"></div>
+      <div class="amb" id="amb">
+        <h3 id="ambH"><span>Visualización</span><span id="ambT">–</span></h3>
+        <div class="ambb">
+          <div class="seg" id="seg">
+            <button data-m="dia" class="on">Día</button>
+            <button data-m="tarde">Tarde</button>
+            <button data-m="noche">Noche</button>
+          </div>
+          <div class="row"><label for="hora">Hora</label><input type="range" id="hora" min="0" max="23.75" step="0.25" value="12"><output id="horaO">12:00</output></div>
+          <div class="row"><label for="orto">Ortofoto</label><input type="range" id="orto" min="0" max="100" value="100"><output id="ortoO">100%</output></div>
+          <div class="row"><label for="terr">Terreno</label><input type="range" id="terr" min="0" max="100" value="100"><output id="terrO">100%</output></div>
+          <div class="row"><label for="mod">Modelos 3D</label><input type="range" id="mod" min="10" max="100" value="100"><output id="modO">100%</output></div>
+          <div class="tog"><span>Fondo blanco</span><button class="sw" id="blanco" aria-label="Fondo blanco"></button></div>
+          <div class="tog"><span>Sombras</span><button class="sw on" id="sombras" aria-label="Sombras"></button></div>
+        </div>
+      </div>
+      <div class="ficha" id="ficha">
+        <div class="fh">
+          <div><div class="badge" id="fCat"><i></i><span></span></div><h4 id="fNom"></h4></div>
+          <button class="x" id="fX" aria-label="Cerrar">×</button>
+          <div class="loc" id="fLoc"></div>
+        </div>
+        <div class="fb"><table id="fTab"></table></div>
+        <div class="ff"><button class="btn" id="fZoom">Acercar</button><button class="btn" id="fCopy">Copiar parámetros</button></div>
+      </div>
+      <div class="rec" id="rec">
+        <div class="rec-top">
+          <select id="recRuta" aria-label="Ruta"></select>
+          <button class="ico" id="recRev" title="Invertir sentido">⇄</button>
+          <div class="seg" id="recModo">
+            <button data-m="conductor">Conductor</button>
+            <button data-m="persecucion" class="on">Persecución</button>
+            <button data-m="dron">Dron</button>
+          </div>
+          <button class="x" id="recX" aria-label="Cerrar recorrido">×</button>
+        </div>
+        <div class="rec-mid">
+          <button class="play" id="recPlay" title="Reproducir / pausar (barra espaciadora)">▶</button>
+          <input type="range" id="recSl" min="0" max="1000" step="1" value="0" aria-label="Posición en la ruta">
+          <div class="rec-km" id="recKm">0+000</div>
+        </div>
+        <div class="rec-bot">
+          <div class="vel" id="recVel">
+            <button data-v="20">20</button><button data-v="40">40</button><button data-v="60" class="on">60</button><button data-v="90">90</button><button data-v="200">200</button><span style="align-self:center;margin-left:2px">km/h</span>
+          </div>
+          <div class="alt"><label for="recAlt">Altura cámara</label><input type="range" id="recAlt" min="-10" max="80" value="0"><output id="recAltO" style="font-family:var(--mono)">+0 m</output></div>
+          <div class="rec-info" id="recInfo"></div>
+        </div>
+      </div>
+      <div class="toast" id="toast"></div>
+      <div class="loading" id="loading"><div><div class="spin"></div><div id="loadTxt">Cargando escena…</div></div></div>
+    </main>
   </div>
-</main>
+</div>
 
-<div id="gate"><div class="gbox"><h2>Cargando…</h2></div></div>
-<div id="toast"></div>
+<dialog id="diag">
+  <div class="dh"><b>Diagnóstico: cómo se leyó cada capa</b><button class="btn" onclick="this.closest('dialog').close()">Cerrar</button></div>
+  <div class="db" id="diagBody"></div>
+</dialog>
 
+<script src="https://js.arcgis.com/4.31/"></script>
 <script>
+/* =================== CONFIGURACIÓN =================== */
+const CONFIG = {
+  PORTAL_URL: "https://consorciodga.maps.arcgis.com",
+  WEBSCENE_ID: "c6e3c462e1d1471eaf9b1a1e1cadb3ff",
+  APP_ID: "",               // opcional: Client ID de una aplicación registrada en ArcGIS Online
+  CAMPO_TRAMO: null,        // ej. "TRAMO" si quieres fijarlo
+  CAMPO_PROGRESIVA: null,   // ej. "PROGRESIVA"
+  DIST_MAX_PROG: 3000,      // m
+  TIMEZONE_OFFSET: -5,
+  CAPAS_APAGADAS: /LAGO|LAGUNA/i,  // capas fuera del alcance vial: se apagan al iniciar
+  // Modelos 3D de Civil 3D: cada estructura suele estar formada por varios sólidos (cabezal, tubo, aletas…).
+  // Los sólidos de la misma clase a menos de esta distancia (m) se cuentan como UNA estructura. 0 = no agrupar.
+  AGRUPAR_M: { alc: 25, pte: 60, sen: 3 },
+  // Texto que identifica un puente dentro de los atributos (p. ej. el nombre de capa CAD)
+  PATRON_PUENTE: /PUENTE|PONT|BRIDGE|PTE[\s_-]/i,
+  // Distancia máx. (m) para vincular un punto de alcantarilla/puente con su modelo 3D
+  VINCULO_M: 60,
+  // Recorrido virtual
+  CAPAS_EJE: /EJE|ALINEA|CENTER|AXIS|ALIGN/i,     // capas de líneas usadas como ruta (título)
+  VEHICULO_MODELOS: ["Pickup_Truck", "Ford_Fusion", "Audi_A6"], // estilo EsriRealisticTransportationStyle
+  VEHICULO_GIRO: 0,          // grados: corrige la orientación del modelo si avanza de costado (90 / 180 / 270)
+  RECORRIDO_PASO: 5          // m entre puntos de la trayectoria suavizada
+};
+
+const CATS = [
+  {k:"prog", n:"Progresivas",       re:/PROGRES/i,              c:"--c-prog"},
+  {k:"alc",  n:"Alcantarillas",     re:/ALCANTAR/i,             c:"--c-alc"},
+  {k:"pte",  n:"Puentes",           re:/PUENTE/i,               c:"--c-pte"},
+  {k:"sen",  n:"Señalización",      re:/SE[ÑN]AL/i,             c:"--c-sen"},
+  {k:"aux",  n:"Áreas auxiliares",  re:/AREAS?_?AUX|AUXILIAR/i, c:"--c-aux", not:/ACCESO/i},
+  {k:"acc",  n:"Accesos",           re:/ACCESO/i,               c:"--c-acc"},
+  {k:"geo",  n:"Pts. geodésicos",   re:/GEOD/i,                 c:"--c-geo"},
+  {k:"mej",  n:"Mejoramiento",      re:/MEJORAM/i,              c:"--c-mej"},
+  {k:"can",  n:"Canteras",          re:/CANTERA/i,              c:"--c-can"}
+];
+const $ = id => document.getElementById(id);
+const TITULO = "Corredor Vial N°22: SECTOR A";
+
+// El diálogo de inicio de sesión de ArcGIS muestra el ID del elemento: se reemplaza por el título del dashboard
+(() => {
+  const limpiar = root => {
+    const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    const enDialogo = n => n.parentElement?.closest('[class*="identity"], [class*="esri-dialog"], [role="dialog"]');
+    const nodos = [];
+    while(w.nextNode()){
+      const v = w.currentNode.nodeValue;
+      if(v.includes(CONFIG.WEBSCENE_ID) || (/ArcGIS Online/.test(v) && enDialogo(w.currentNode))) nodos.push(w.currentNode);
+    }
+    nodos.forEach(n => {
+      if(n.nodeValue.includes(CONFIG.WEBSCENE_ID)) n.nodeValue = "Inicie sesión para acceder al «" + TITULO + "»";
+      else n.nodeValue = n.nodeValue.replace(/\s*(en|on|in)?\s*ArcGIS Online\s*/i, " ").replace(/\s+$/, " ");
+    });
+  };
+  new MutationObserver(ms => ms.forEach(m => {
+    if(m.type === "characterData") limpiar(m.target.parentNode || document.body);
+    m.addedNodes.forEach(n => (n.nodeType === 1 || n.nodeType === 3) && limpiar(n.nodeType === 3 ? n.parentNode : n));
+  })).observe(document.body, {childList:true, subtree:true, characterData:true});
+})();
+const esc = s => String(s ?? "").replace(/[&<>"]/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+const catN = k => CATS.find(c => c.k === k);
+
+function range(a,b){ const r=[]; for(let i=a;i<=b;i++) r.push(i); return r; }
+function tramosDeTitulo(t){
+  if(!t) return [];
+  const s = t.toUpperCase().replace(/Ñ/g,"N");
+  let m = s.match(/T?(\d{1,2})\s*[_\s-]*(?:AL|A)\s*[_\s-]*T?(\d{1,2})(?!\d)/);
+  if(m){ const a=+m[1], b=+m[2]; if(b>=a && b-a<40) return range(a,b); }
+  m = s.match(/T(\d{3,})(?!\d)/);
+  if(m && +m[1] > 40) return m[1].split("").map(Number).filter(n=>n>0);
+  m = s.match(/T(\d{1,2})[_\s-]+T(\d{1,2})(?!\d)/);
+  if(m){ const a=+m[1], b=+m[2]; if(b>=a) return range(a,b); }
+  m = s.match(/TRAMOS?\s*([\d\s,y\-]+)/);
+  if(m){ const ns=(m[1].match(/\d{1,2}/g)||[]).map(Number); if(ns.length) return ns; }
+  m = s.match(/(?:^|[^A-Z])T(?:RAMO)?[\s_-]*0?(\d{1,2})(?!\d)/);
+  if(m) return [+m[1]];
+  return [];
+}
+// Tramo escrito dentro de un atributo de texto: "C_T01 - 6", "TRAMO 05", "T-3"
+function tramoEnTexto(v){
+  if(typeof v !== "string") return null;
+  const m = v.toUpperCase().match(/(?:^|[^A-Z0-9])T(?:RAMO)?[\s_-]*0?(\d{1,2})(?!\d)/);
+  return m ? +m[1] : null;
+}
+function tramoDeValor(v){
+  if(v==null || v==="") return null;
+  if(typeof v==="number") return Number.isFinite(v) ? Math.round(v) : null;
+  const m = String(v).match(/\d{1,2}/); return m ? +m[0] : null;
+}
+function parseProg(v){
+  if(v==null || v==="") return null;
+  if(typeof v==="number") return v;
+  const s = String(v).replace(/\s/g,"").replace(/^KM/i,"");
+  let m = s.match(/(\d+)\+(\d+(?:[.,]\d+)?)/);
+  if(m) return (+m[1])*1000 + parseFloat(m[2].replace(",","."));
+  m = s.match(/^(\d+(?:[.,]\d+)?)$/);
+  return m ? parseFloat(m[1].replace(",",".")) : null;
+}
+function fmtProg(m){
+  if(m==null || !isFinite(m)) return "";
+  const km = Math.floor(m/1000), r = m - km*1000;
+  return km + "+" + r.toFixed(r%1 ? 2 : 0).padStart(r%1 ? 6 : 3,"0");
+}
+const NAME_RE = /^(NOMBRE|NAME|COD|CODIGO|ID_|DESCRIP|ETIQ|LABEL|DENOM|ESTRUCT|TIPO|OBRA|LAYER|REFNAME|TEXT)/i;
+const SKIP_RE = /^(__|SHAPE|OBJECTID|FID|GLOBALID|OID|ESRI_OID|CREATED_|LAST_EDITED|EDITOR|CREATOR)/i;
+const NO_HOJA = ["group","elevation","integrated-mesh","imagery","imagery-tile","tile","vector-tile","web-tile","wms","wmts","base-elevation","base-tile"];
+
 require([
-  "esri/identity/OAuthInfo",
-  "esri/identity/IdentityManager",
-  "esri/WebScene",
-  "esri/views/SceneView",
-  "esri/widgets/Home",
-  "esri/widgets/Expand",
-  "esri/widgets/Slice",
-  "esri/widgets/DirectLineMeasurement3D",
-  "esri/widgets/AreaMeasurement3D",
-  "esri/core/reactiveUtils",
-  "esri/layers/support/FeatureFilter"
-], function (OAuthInfo, IdentityManager, WebScene, SceneView, Home, Expand, Slice,
-             DirectLineMeasurement3D, AreaMeasurement3D, reactiveUtils, FeatureFilter) {
+  "esri/config","esri/WebScene","esri/views/SceneView","esri/identity/OAuthInfo","esri/identity/IdentityManager",
+  "esri/widgets/Home","esri/widgets/DirectLineMeasurement3D","esri/widgets/Slice","esri/widgets/Expand",
+  "esri/core/reactiveUtils","esri/geometry/Extent","esri/layers/support/FeatureFilter",
+  "esri/request","esri/geometry/Point","esri/geometry/projection",
+  "esri/Graphic","esri/layers/GraphicsLayer","esri/symbols/WebStyleSymbol","esri/Camera",
+  "esri/geometry/Multipoint","esri/geometry/SpatialReference","esri/geometry/support/webMercatorUtils"
+], (esriConfig, WebScene, SceneView, OAuthInfo, IdentityManager, Home, Measure, Slice, Expand, reactiveUtils, Extent, FeatureFilter, esriRequest, Point, projection,
+    Graphic, GraphicsLayer, WebStyleSymbol, Camera, Multipoint, SpatialReference, webMercatorUtils) => {
 
-  /* =================== utilidades =================== */
-  const $ = (s) => document.querySelector(s);
-  const NUM = new Set(["small-integer", "integer", "single", "double", "long", "big-integer"]);
-  const nf = new Intl.NumberFormat("es-PE", { maximumFractionDigits: 3 });
-  const nf2 = new Intl.NumberFormat("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const nf0 = new Intl.NumberFormat("es-PE", { maximumFractionDigits: 0 });
-  const PALETTE = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b",
-                   "#e377c2", "#17becf", "#bcbd22", "#393b79"];
-  const RAMP = ["#2b83ba", "#abdda4", "#ffffbf", "#fdae61", "#d7191c"];
-  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const norm = (s) => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase().replace(/[^A-Z0-9]+/g, " ").trim();
-  const withTimeout = (p, ms) => Promise.race([p, new Promise((r) => setTimeout(() => r(null), ms))]);
-  const store = {
-    get(k) { try { return localStorage.getItem("bimdash." + k); } catch (e) { return null; } },
-    set(k, v) { try { localStorage.setItem("bimdash." + k, v); } catch (e) {} }
-  };
-  let toastT;
-  function toast(msg) {
-    const t = $("#toast"); t.textContent = msg; t.classList.add("on");
-    clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("on"), 2600);
+  esriConfig.portalUrl = CONFIG.PORTAL_URL;
+  if(CONFIG.APP_ID){
+    IdentityManager.registerOAuthInfos([new OAuthInfo({
+      appId: CONFIG.APP_ID, portalUrl: CONFIG.PORTAL_URL, popup: true,
+      popupCallbackUrl: new URL("oauth-callback.html", location.href).href
+    })]);
   }
 
-  /* Obras de arte, en el orden en que deben aparecer */
-  const ART = ["RAMPAS ACCESO", "ALCANTARILLA", "ALIVIADERO", "CAIDAS", "ENTRADA PLUVIAL", "REGULADORES",
-               "PUENTE VEHICULAR", "SIFONES", "TRANSICIONES", "CASETA", "ACUEDUCTO", "PUENTE PEATONAL", "RBC", "CANAL"];
-  const ART_N = ART.map(norm);
+  const scene = new WebScene({ portalItem: { id: CONFIG.WEBSCENE_ID, portal: { url: CONFIG.PORTAL_URL } } });
+  const view = new SceneView({ container:"viewDiv", map:scene, qualityProfile:"high", popupEnabled:false,
+    environment:{ atmosphereEnabled:true, starsEnabled:true } });
+  window.__view = view;
 
-  /* Parámetros configurados en Revit (DEO) + Family */
-  const DEO_RX = /^t?(\d\d)_(\d\d)_DEO_/i;
-  const FAMILY_RX = /^family$/i;
-  const VOL_RX = /03_05_DEO_Vol/i;
-  const MAT_RX = /02_02_DEO_Mat/i;
-  const TRAMO_RX = /01_09_DEO_Tramo/i;
-  const PROG_RX = /01_08_DEO_Prog/i;
-  const IMG_TYPES = new Set(["imagery", "imagery-tile", "tile", "web-tile", "wmts", "wms", "vector-tile", "base-tile", "open-street-map"]);
+  const S = { modelos:[], tramo:"ALL", cat:"alc", tramos:[], feats:[], keys:new Set(), progPts:[], rangos:{},
+              sel:null, hl:null, orig:null, infos:[] };
 
-  /* =================== configuración =================== */
-  const P = new URLSearchParams(location.search);
-  const CFG = {
-    webscene: P.get("webscene") || store.get("webscene") || "4b6ffabfd9214f86af7768103e3b32ad",
-    appid: P.get("appid") || store.get("appid"),
-    portal: (P.get("portal") || store.get("portal") || "https://consorciodga.maps.arcgis.com").replace(/\/+$/, ""),
-    layer: P.get("layer"),
-    oid: P.get("oid")
-  };
-  const SHARING = CFG.portal + "/sharing";
-  const QUALITY = ["low", "medium", "high"].includes(store.get("quality")) ? store.get("quality") : "high";
-  const DEFAULT_MODEL = P.get("default") || "RBC-EP-T01-01";
-
-  /* =================== estado =================== */
-  let view, scene;
-  let cats = [], models = [], comps = [];
-  let active = null;          // modelo o componente seleccionado
-  let units = [];             // capas consultables del objetivo activo
-  let shown = [];             // campos visibles
-  let fieldMap = new Map();   // nombre -> definición de campo
-  let rows = [];
-  let selKey = null, hl = null;
-  let updWatches = [];
-  let sortState = { f: null, dir: 1 };
-  let chartState = null;
-  let loadToken = 0;
-  const expanded = new Set();
-  const origRenderers = new Map();
-  const isolated = new Map();
-
-  /* =================== tema día / noche =================== */
-  const theme = () => document.documentElement.getAttribute("data-theme") || "light";
-  function setTheme(t) {
-    document.documentElement.setAttribute("data-theme", t);
-    $("#esri-theme").href = "https://js.arcgis.com/4.30/esri/themes/" + t + "/main.css";
-    store.set("theme", t);
-    $("#btnTheme").textContent = t === "dark" ? "☀ Día" : "☾ Noche";
-    if (bgState.plain && view) applyPlainBg();
-  }
-  $("#btnTheme").onclick = () => setTheme(theme() === "dark" ? "light" : "dark");
-
-  /* =================== acceso =================== */
-  function gate(html) { const g = $("#gate"); g.innerHTML = '<div class="gbox">' + html + "</div>"; g.hidden = false; }
-  function ungate() { $("#gate").hidden = true; }
-
-  function showSetup(err) {
-    gate(`
-      <h2>Conectar escena web</h2>
-      <p>Indica la escena de ArcGIS Online que quieres explorar.</p>
-      <label>ID del ítem de la escena web</label>
-      <input id="gWs" value="${esc(CFG.webscene || "")}">
-      <label>Client ID (App ID) OAuth <small>— obligatorio si la escena es privada</small></label>
-      <input id="gApp" value="${esc(CFG.appid || "")}">
-      <label>URL del portal</label>
-      <input id="gPortal" value="${esc(CFG.portal)}">
-      <button class="go" id="gGo">Conectar</button>
-      ${err ? '<div class="err">' + esc(err) + "</div>" : ""}
-    `);
-    $("#gGo").onclick = () => {
-      const ws = $("#gWs").value.trim(), app = $("#gApp").value.trim(), portal = $("#gPortal").value.trim() || CFG.portal;
-      if (!ws) return;
-      store.set("webscene", ws); store.set("appid", app); store.set("portal", portal);
-      const u = new URL(location.href);
-      u.searchParams.set("webscene", ws);
-      app ? u.searchParams.set("appid", app) : u.searchParams.delete("appid");
-      u.searchParams.set("portal", portal);
-      location.href = u.href;
-    };
-  }
-
-  function showLogin(err) {
-    gate(`
-      <h2>Iniciar sesión</h2>
-      <p>La escena es privada. Inicia sesión con tu cuenta de ArcGIS Online para cargar los modelos.</p>
-      <button class="go" id="gLogin">Iniciar sesión en ArcGIS</button>
-      <p style="margin-top:12px;font-size:12px">Se abrirá una ventana emergente. Si no aparece, permite las ventanas emergentes para este sitio.</p>
-      ${err ? '<div class="err">' + esc(err) + "</div>" : ""}
-    `);
-    $("#gLogin").onclick = () => {
-      IdentityManager.getCredential(SHARING)
-        .then(() => loadScene())
-        .catch((e) => showLogin("No se pudo iniciar sesión: " + (e && e.message ? e.message : e)));
-    };
-  }
-
-  async function start() {
-    setTheme(theme());
-    if (!CFG.webscene) { showSetup(); return; }
-    if (CFG.appid) {
-      IdentityManager.registerOAuthInfos([new OAuthInfo({
-        appId: CFG.appid, portalUrl: CFG.portal, popup: true,
-        popupCallbackUrl: new URL("oauth-callback.html", location.href).href
-      })]);
-      try { await IdentityManager.checkSignInStatus(SHARING); loadScene(); }
-      catch (e) { showLogin(); }
-    } else loadScene();
-  }
-
-  /* =================== carga de escena =================== */
-  async function loadScene() {
-    gate("<h2>Cargando escena…</h2><p>Leyendo los modelos de la escena web.</p>");
-    try {
-      scene = new WebScene({ portalItem: { id: CFG.webscene, portal: { url: CFG.portal } } });
-      await scene.load();
-    } catch (e) {
-      const msg = (e && e.message) || String(e);
-      showSetup(!CFG.appid && /permission|token|auth|403|499/i.test(msg)
-        ? "La escena parece privada. Agrega el Client ID OAuth para iniciar sesión."
-        : "No se pudo cargar la escena: " + msg);
-      return;
-    }
-    ungate();
-
-    const cred = IdentityManager.findCredential(SHARING);
-    if (cred) { $("#user").textContent = cred.userId; $("#btnOut").hidden = false; }
-    $("#title").textContent = scene.portalItem.title || "Escena web";
-    $("#subtitle").textContent = "ArcGIS Online · " + (scene.portalItem.owner ? "Propietario: " + scene.portalItem.owner : "Escena web");
-    document.title = (scene.portalItem.title || "Visor") + " · BIM";
-
-    view = new SceneView({
-      container: "view", map: scene, popupEnabled: false,
-      qualityProfile: QUALITY,
-      highlightOptions: { color: [0, 190, 255, 1], haloOpacity: 1, fillOpacity: 0.35 }
-    });
-    // Sin sombras proyectadas: aliviana mucho el dibujo de modelos BIM
-    try { view.environment.lighting.directShadowsEnabled = false; } catch (e) {}
-    view.ui.add(new Home({ view }), "top-left");
-    view.ui.add(new Expand({ view, content: buildBgTool(), expandTooltip: "Fondo y transparencia", group: "tools", expandIcon: "basemap" }), "top-right");
-    view.ui.add(new Expand({ view, content: new Slice({ view }), expandTooltip: "Corte (slice)", group: "tools" }), "top-right");
-    view.ui.add(new Expand({ view, content: new DirectLineMeasurement3D({ view }), expandTooltip: "Medir distancia", group: "tools", expandIcon: "measure-line" }), "top-right");
-    view.ui.add(new Expand({ view, content: new AreaMeasurement3D({ view }), expandTooltip: "Medir área", group: "tools", expandIcon: "measure-area" }), "top-right");
-    // "immediate-click" responde al instante (no espera a descartar un doble clic)
-    view.on("immediate-click", onViewClick);
-    view.on("pointer-move", onHover);
-    if (bgState.plain) applyPlainBg();
-
-    try { await scene.loadAll(); } catch (e) { console.warn(e); }
-    collect();
-    renderTree();
-    updateArtKpi();
-    refreshBgTool();
-
-    // Modelo inicial: el del enlace (?layer=) o, por defecto, RBC-EP-T01-01
-    const byTitle = (t) => {
-      const q = norm(t);
-      return models.find((m) => norm(m.title) === q) || comps.find((c) => norm(c.title) === q) || null;
-    };
-    let first = (CFG.layer && byTitle(CFG.layer)) || byTitle(DEFAULT_MODEL);
-    if (first) {
-      openPath(first);
-      await activate(first);
-      autoSel = { token: loadToken, oid: CFG.oid };   // seleccionar la primera fila al llegar los datos
-      zoomNode(first);
-    }
-  }
-
-  /* =================== árbol de modelos =================== */
-  function kindLabel(kind) {
-    if (IMG_TYPES.has(kind)) return "IMG";
-    return ({ scene: "3D", feature: "FL", "building-scene": "BIM", building: "BIM", "integrated-mesh": "Malla", "point-cloud": "Nube", elevation: "MDE", graphics: "GR" }[kind] || kind);
-  }
-
-  function collect() {
-    cats = []; models = []; comps = [];
-    const catMap = new Map();
-    const getCat = (title, group) => {
-      const key = norm(title);
-      if (!catMap.has(key)) catMap.set(key, { node: "cat", id: "c" + catMap.size, key, title, group, models: [], art: ART_N.includes(key) });
-      return catMap.get(key);
-    };
-    const addModel = (l, cat, sub) => {
-      const m = { node: "model", id: "m" + models.length, title: l.title || "(sin nombre)", sub, layer: l, kind: l.type, cat, comps: [] };
-      if (l.type === "building-scene") {
-        l.allSublayers.forEach((s) => {
-          if (s.type !== "building-component") return;
-          const c = { node: "comp", id: "k" + comps.length, title: s.title, layer: s, model: m, kind: "building" };
-          comps.push(c); m.comps.push(c);
-        });
-      }
-      models.push(m); cat.models.push(m);
-    };
-    const walkGroup = (g, cat, sub) => g.layers.toArray().reverse().forEach((l) => {
-      if (l.type === "group") walkGroup(l, cat, sub ? sub + " / " + l.title : l.title);
-      else addModel(l, cat, sub);
-    });
-    scene.layers.toArray().reverse().forEach((l) => {
-      if (l.type === "group") walkGroup(l, getCat(l.title, l), null);
-      else addModel(l, getCat("OTRAS CAPAS", null), null);
-    });
-    const art = ART_N.map((k) => catMap.get(k)).filter(Boolean);
-    const rest = [...catMap.values()].filter((c) => !c.art);
-    cats = [...art, ...rest];
-  }
-
-  const byId = (id) => id[0] === "c" ? cats.find((x) => x.id === id) : id[0] === "m" ? models.find((x) => x.id === id) : comps.find((x) => x.id === id);
-
-  function isVis(n) {
-    if (n.node === "cat") return n.group ? n.group.visible : n.models.some((m) => m.layer.visible);
-    return n.layer.visible !== false;
-  }
-
-  function setVis(n, v) {
-    if (n.node === "cat") {
-      if (n.group) n.group.visible = v; else n.models.forEach((m) => (m.layer.visible = v));
-      return;
-    }
-    n.layer.visible = v;
-    if (!v) return;
-    // encender también los contenedores para que el elemento se vea
-    if (n.node === "comp") {
-      let p = n.layer.parent;
-      while (p && p !== n.model.layer) { if ("visible" in p) p.visible = true; p = p.parent; }
-      n.model.layer.visible = true;
-    }
-    let p = (n.node === "comp" ? n.model.layer : n.layer).parent;
-    while (p && p.type === "group") { p.visible = true; p = p.parent; }
-  }
-
-  function matches(n, q) {
-    if (!q) return true;
-    if (norm(n.title).includes(q)) return true;
-    if (n.node === "cat") return n.models.some((m) => matches(m, q));
-    if (n.node === "model") return n.comps.some((c) => matches(c, q));
-    return false;
-  }
-
-  function rowHtml(n, lvl, hasKids, extra) {
-    const open = expanded.has(n.id);
-    const on = active === n ? " on" : "";
-    return `<div class="row l${lvl}${on}" data-id="${n.id}">
-      <button class="chev ${hasKids ? (open ? "open" : "") : "none"}" data-act="tog" data-id="${n.id}">▶</button>
-      <input type="checkbox" ${isVis(n) ? "checked" : ""} data-act="vis" data-id="${n.id}" title="Visibilidad">
-      <span class="t" title="${esc(n.title)}">${esc(n.title)}${extra || ""}</span>
-      ${n.node === "cat" ? `<span class="cnt">${n.models.length}</span>` : `<span class="k">${kindLabel(n.kind)}</span>`}
-      <button class="ib" data-act="zoom" data-id="${n.id}" title="Acercar">⌖</button>
-    </div>`;
-  }
-
-  function renderTree() {
-    const q = norm($("#treeFilter").value);
-    const block = (list) => list.filter((c) => matches(c, q)).map((c) => {
-      let h = rowHtml(c, 0, c.models.length > 0);
-      if (expanded.has(c.id) || q) {
-        c.models.filter((m) => !q || matches(m, q) || norm(c.title).includes(q)).forEach((m) => {
-          h += rowHtml(m, 1, m.comps.length > 0, m.sub ? `<small>${esc(m.sub)}</small>` : "");
-          if (expanded.has(m.id) || (q && m.comps.some((k) => matches(k, q)))) {
-            m.comps.filter((k) => !q || matches(k, q) || matches(m, q) || norm(c.title).includes(q)).forEach((k) => { h += rowHtml(k, 2, false); });
-          }
-        });
-      }
-      return h;
-    }).join("");
-    const art = block(cats.filter((c) => c.art)), rest = block(cats.filter((c) => !c.art));
-    $("#tree").innerHTML =
-      (art ? '<div class="sec">Obras de arte</div>' + art : "") +
-      (rest ? '<div class="sec">Otras capas</div>' + rest : "") ||
-      '<div class="empty">No hay capas que coincidan.</div>';
-  }
-
-  $("#tree").addEventListener("click", (e) => {
-    const el = e.target.closest("[data-act]") || e.target.closest(".row");
-    if (!el) return;
-    const n = byId(el.dataset.id);
-    if (!n) return;
-    const act = el.dataset.act;
-    if (act === "vis") { setVis(n, e.target.checked); renderTree(); if (units.length) scheduleTable(); return; }
-    if (act === "tog") { expanded.has(n.id) ? expanded.delete(n.id) : expanded.add(n.id); renderTree(); return; }
-    if (act === "zoom") { zoomNode(n); return; }
-    // clic en la fila
-    if (n.node === "cat") { expanded.has(n.id) ? expanded.delete(n.id) : expanded.add(n.id); renderTree(); return; }
-    if (n !== active) activate(n);
+  view.when(async () => {
+    setStatus(true, IdentityManager.credentials[0]?.userId || "Conectado");
+    S.orig = { basemap: scene.basemap, bg: view.environment.background,
+               ground: scene.ground.surfaceColor, nav: scene.ground.navigationConstraint?.type || "stay-above" };
+    view.ui.add(new Home({view}), "top-left");
+    view.ui.add(new Expand({view, content:new Measure({view}), expandTooltip:"Medir distancia", group:"tl"}), "top-left");
+    view.ui.add(new Expand({view, content:new Slice({view}), expandTooltip:"Corte / sección", group:"tl"}), "top-left");
+    initAmbiente();
+    $("loadTxt").textContent = "Encendiendo capas y leyendo elementos…";
+    try { await analizar(); } catch(e){ console.error(e); toast("Error al leer capas: " + e.message); }
+    $("loading").classList.add("hide");
+    const p = new URLSearchParams(location.search);
+    if(p.get("tramo")) setTramo(p.get("tramo"));
+    else renderAll();
+    // Los modelos 3D sin capa de entidades asociada solo entregan lo que está cargado en pantalla:
+    // se vuelven a leer cada vez que la cámara se detiene.
+    reactiveUtils.when(() => view.stationary && !view.updating, () => releerVivas(), {});
+  }, err => {
+    console.error(err);
+    setStatus(false, "Sin acceso a la escena");
+    $("loadTxt").innerHTML = "No se pudo abrir la escena.<br><small>Inicia sesión con una cuenta de <b>consorciodga</b> o revisa que la escena esté compartida contigo.</small>";
   });
-  $("#treeFilter").addEventListener("input", renderTree);
-  $("#expAll").onclick = () => { cats.forEach((c) => expanded.add(c.id)); renderTree(); };
-  $("#colAll").onclick = () => { expanded.clear(); renderTree(); };
 
-  function openPath(n) {
-    if (n.node === "comp") { expanded.add(n.model.id); expanded.add(n.model.cat.id); }
-    if (n.node === "model") expanded.add(n.cat.id);
+  function setStatus(ok, t){ $("stDot").classList.toggle("on", ok); $("stTxt").textContent = t; }
+  let tt; function toast(t, ms=3500){ $("toast").textContent = t; $("toast").classList.add("show"); clearTimeout(tt); tt = setTimeout(() => $("toast").classList.remove("show"), ms); }
+
+  function catsDe(title){ return CATS.filter(c => c.re.test(title) && !(c.not && c.not.test(title))).map(c => c.k); }
+  function encender(L, v=true){
+    L.visible = v;
+    if(v){ let p = L.parent; while(p && p !== scene && "visible" in p){ p.visible = true; p = p.parent; } }
   }
 
-  function extentsOf(n) {
-    if (n.node === "cat") return n.models.map((m) => m.layer.fullExtent).filter(Boolean);
-    const e = n.layer.fullExtent || (n.node === "comp" && n.model.layer.fullExtent);
-    return e ? [e] : [];
-  }
-  function zoomNode(n) {
-    if (!isVis(n)) { setVis(n, true); renderTree(); }
-    const ex = extentsOf(n);
-    if (!ex.length) return toast("Esta capa no tiene extensión definida.");
-    const target = ex.length === 1 ? ex[0].clone().expand(1.3) : ex;
-    view.goTo(target).catch(() => {});
-  }
-
-  /* =================== activar modelo =================== */
-  const unitsOf = (n) => n.node === "comp" ? [n] : (n.kind === "building-scene" ? n.comps : [n]);
-  const unitKind = (u) => u.node === "comp" ? "building" : u.kind;
-  const hasFields = (u) => !!(u.layer.fields && u.layer.fields.length);
-  const oidField = (u) => u.layer.objectIdField || (u.layer.fields || []).find((f) => f.type === "oid")?.name || "OBJECTID";
-  const fieldLabel = (f) => (f.alias && f.alias !== f.name ? f.alias : f.name.replace(/^t(?=\d\d_\d\d_)/i, ""));
-  const fKey = (f) => f.name + " " + (f.alias || "");
-
-  async function lvFor(u) {
-    if (u.node === "comp") {
-      const blv = await withTimeout(view.whenLayerView(u.model.layer), 6000);
-      return blv ? (blv.sublayerViews || []).find((sv) => sv.sublayer === u.layer) || null : null;
+  /* ---------- lectura de elementos ---------- */
+  async function leerCapa(info){
+    const L = info.layer;
+    try{ await L.load(); }catch(e){ info.err = "No carga: " + (e.message||e); return []; }
+    let src = L;
+    if(["scene","building-scene","point-cloud"].includes(L.type)){
+      if(L.associatedLayer){ try{ await L.associatedLayer.load(); src = L.associatedLayer; }catch(e){} }
     }
-    return withTimeout(view.whenLayerView(u.layer), 6000);
-  }
-
-  function buildFields() {
-    fieldMap = new Map();
-    units.forEach((u) => (u.layer.fields || []).forEach((f) => { if (!fieldMap.has(f.name)) fieldMap.set(f.name, f); }));
-    const all = [...fieldMap.values()];
-    const code = (f) => { const m = fKey(f).match(/(\d\d)_(\d\d)_DEO_/i); return m ? m[1] + m[2] : "9999"; };
-    const deo = all.filter((f) => DEO_RX.test(f.name) || DEO_RX.test(f.alias || "")).sort((a, b) => code(a).localeCompare(code(b)));
-    const fam = all.find((f) => FAMILY_RX.test(f.name) || FAMILY_RX.test(f.alias || ""));
-    shownAll = !deo.length;
-    if (deo.length) shown = (fam ? [fam] : []).concat(deo);
-    else shown = all.filter((f) => !/^shape|geometry/i.test(f.name) && !["geometry", "blob", "raster"].includes(f.type));
-  }
-  let shownAll = false;
-
-  /* Pide al servidor solo los campos que se muestran (no los 90+ de Revit) */
-  function setOutFields() {
-    units.forEach((u) => {
-      try {
-        const names = new Set((u.layer.fields || []).map((f) => f.name));
-        u.layer.outFields = shownAll ? ["*"] : [oidField(u)].concat(shown.map((f) => f.name).filter((n) => names.has(n)));
-      } catch (e) {}
-    });
-  }
-  const findField = (rx) => shown.find((f) => rx.test(fKey(f)));
-
-  async function activate(n) {
-    const token = ++loadToken;
-    active = n;
-    clearSelection();
-    openPath(n);
-    renderTree();
-    units = unitsOf(n);
-    sortState = { f: null, dir: 1 };
-    rows = [];
-    updWatches.forEach((h) => h.remove()); updWatches = [];
-    const titleTxt = n.node === "comp" ? n.model.title + " · " + n.title : n.title;
-    $("#tblTitle").textContent = titleTxt;
-    $("#kModel").textContent = n.title;
-    $("#kModelS").textContent = n.node === "comp" ? n.model.title : (n.cat ? n.cat.title : "");
-    $("#tbl").innerHTML = '<div class="empty">Cargando elementos…</div>';
-
-    if (!isVis(n)) setVis(n, true);
-    await Promise.all(units.map((u) => (u.layer.load ? u.layer.load().catch(() => {}) : null)));
-    if (token !== loadToken) return;
-
-    buildFields();
-    setOutFields();
-    fillFieldSelect();
-
-    // Releer la tabla solo cuando la cámara se detiene (no en cada tesela)
-    if (units.some((u) => unitKind(u) === "scene" || unitKind(u) === "building")) {
-      updWatches.push(reactiveUtils.when(() => view.stationary, () => { if (token === loadToken) scheduleTable(); }));
-      units.forEach((u) => lvFor(u).then((lv) => {
-        if (!lv || token !== loadToken) return;
-        updWatches.push(reactiveUtils.when(() => !lv.updating, () => { if (token === loadToken) scheduleTable(); }));
-      }));
+    info.fields = src.fields || L.fields || [];
+    info.oidField = src.objectIdField || L.objectIdField;
+    if(src.type === "feature" || src.type === "geojson" || src.type === "csv"){
+      info.modo = src === L ? "consulta" : "consulta (capa asociada)";
+      const qc = src.capabilities?.query || {};
+      const size = Math.min(qc.maxRecordCount || 1000, 2000), out = [];
+      for(let start = 0; start < 50000; start += size){
+        const q = src.createQuery();
+        q.where = "1=1"; q.outFields = ["*"]; q.returnGeometry = true; q.outSpatialReference = view.spatialReference;
+        if(qc.supportsPagination){ q.start = start; q.num = size; }
+        const r = await src.queryFeatures(q);
+        out.push(...r.features);
+        if(!qc.supportsPagination || r.features.length < size || !r.exceededTransferLimit && r.features.length < size) break;
+      }
+      return out;
     }
-    // La tabla carga en segundo plano: la selección y el clic no esperan por ella
-    loadTable(token).then(() => { if (token === loadToken) renderChart(); });
+    if(L.type === "scene"){
+      try{
+        const gs = await leerI3S(info);
+        if(gs.length) return agruparEstructuras(info, gs);
+      }catch(e){ console.warn("I3S", info.title, e); info.err = "Lectura completa no disponible: " + (e.message||e); }
+      info.modo = "modelo 3D (lectura en pantalla)"; info.viva = true;
+      return leerVista(info);
+    }
+    info.modo = "sin consulta (" + L.type + ")";
+    return [];
   }
-
-  /* =================== tabla =================== */
-  let tblTimer;
-  function scheduleTable() {
-    clearTimeout(tblTimer);
-    tblTimer = setTimeout(() => {
-      if (!units.length) return;
-      if (view && !view.stationary) { scheduleTable(); return; }
-      loadTable(loadToken);
-    }, 900);
-  }
-
-  async function loadTable(token) {
+  /* ---------- Lectura completa de un modelo 3D (I3S): recorre los nodos hoja y lee OID + textos ---------- */
+  async function leerI3S(info){
+    const L = info.layer;
+    const base = String(L.parsedUrl?.path || L.url).replace(/\/$/,"") + "/layers/" + (L.layerId ?? 0);
+    const J = async u => (await esriRequest(u, {query:{f:"json"}, responseType:"json"})).data;
+    const meta = await J(base);
+    const asi = meta.attributeStorageInfo || [];
+    const oidName = (meta.fields || []).find(f => f.type === "esriFieldTypeOID")?.name || L.objectIdField;
+    const oidS = asi.find(a => a.name === oidName);
+    if(!meta.nodePages || !oidS) throw new Error("el servicio no expone nodePages/OID");
+    const pri = n => /LAYER|CAPA|NAME|NOMBRE|TIPO|DESC|ESTRUC|OBRA|COD/i.test(n) ? 0 : 1;
+    const strS = asi.filter(a => a.attributeValues?.valueType === "String").sort((x,y) => pri(x.name) - pri(y.name)).slice(0, 6);
+    info.oidField = oidName;
+    const per = meta.nodePages.nodesPerPage || 64, nodes = [];
+    for(let p = 0; p < 5000; p++){
+      let pg; try{ pg = await J(`${base}/nodepages/${p}`); }catch(e){ if(p === 0) throw e; break; }
+      const ns = pg.nodes || []; nodes.push(...ns);
+      if(ns.length < per) break;
+    }
+    const hojas = nodes.filter(n => n.mesh?.attribute && !(n.children && n.children.length));
+    const bin = async u => new DataView((await esriRequest(u, {responseType:"array-buffer"})).data);
+    const oids = (dv, s) => {
+      const n = dv.getUint32(0, true), big = /64/.test(s.attributeValues.valueType);
+      let off = (s.header?.length || 1) * 4; if(big) off = Math.ceil(off/8)*8;
+      const out = []; for(let i = 0; i < n; i++) out.push(big ? dv.getUint32(off + i*8, true) : dv.getUint32(off + i*4, true));
+      return out;
+    };
+    const dec = new TextDecoder("utf-8");
+    const textos = (dv, s) => {
+      const n = dv.getUint32(0, true); const off = (s.header?.length || 2) * 4;
+      const out = []; let pos = off + n*4;
+      for(let i = 0; i < n; i++){
+        const len = dv.getUint32(off + i*4, true);
+        let b = new Uint8Array(dv.buffer, dv.byteOffset + pos, len); if(len && b[len-1] === 0) b = b.subarray(0, len-1);
+        out.push(dec.decode(b)); pos += len;
+      }
+      return out;
+    };
+    const reg = new Map(); let k = 0, hechos = 0;
+    const worker = async () => {
+      while(k < hojas.length){
+        const nd = hojas[k++], res = nd.mesh.attribute.resource;
+        try{
+          const ids = oids(await bin(`${base}/nodes/${res}/attributes/${oidS.key}/0`), oidS);
+          const tx = {};
+          for(const s of strS){ try{ tx[s.name] = textos(await bin(`${base}/nodes/${res}/attributes/${s.key}/0`), s); }catch(e){} }
+          const c = nd.obb?.center || nd.mbs;
+          ids.forEach((o, i) => {
+            let r = reg.get(o);
+            if(!r){ r = {a:{[oidName]: o}, c:[]}; for(const nm in tx) r.a[nm] = tx[nm][i]; reg.set(o, r); }
+            if(c) r.c.push(c);
+          });
+        }catch(e){}
+        if(++hechos % 20 === 0) $("loadTxt").textContent = `Leyendo modelo 3D «${info.title}»: ${hechos}/${hojas.length} nodos…`;
+      }
+    };
+    await Promise.all(range(1, 8).map(worker));
+    const sr = meta.spatialReference || L.spatialReference;
+    const proyectar = !(sr?.wkid && view.spatialReference.wkid === sr.wkid) && !(sr?.latestWkid && sr.latestWkid === view.spatialReference.latestWkid);
+    if(proyectar) await projection.load();
     const out = [];
-    await Promise.all(units.map(async (u, i) => {
-      if (!hasFields(u)) return;
-      try {
-        let r;
-        if (unitKind(u) === "feature") {
-          r = await u.layer.queryFeatures({ where: "1=1", outFields: ["*"], returnGeometry: false, num: 5000 });
-        } else {
-          const lv = await lvFor(u);
-          if (!lv || !lv.queryFeatures) return;
-          const q = lv.createQuery ? lv.createQuery() : {};
-          q.outFields = ["*"]; q.returnGeometry = false;
-          r = await lv.queryFeatures(q);
+    for(const r of reg.values()){
+      if(!r.c.length){ out.push({attributes:r.a, geometry:null}); continue; }
+      const m = [0,1,2].map(j => r.c.reduce((s,v) => s + (v[j]||0), 0) / r.c.length);
+      let pt = new Point({x:m[0], y:m[1], z:m[2], spatialReference: sr});
+      if(proyectar){ try{ pt = projection.project(pt, view.spatialReference) || pt; }catch(e){} }
+      out.push({attributes:r.a, geometry:pt});
+    }
+    info.modo = `modelo 3D completo (${hojas.length} nodos, ${out.length} sólidos)`;
+    info.solidos = out.length;
+    return out;
+  }
+
+  // Agrupa sólidos cercanos de la misma clase en una sola estructura (alcantarilla, puente, señal)
+  function claseDe(info, a){
+    if(info.cats.includes("alc") || info.cats.includes("pte")){
+      if(info.cats.includes("pte") && !info.cats.includes("alc")) return "pte";
+      const txt = Object.entries(a).filter(([k,v]) => typeof v === "string" && !/^__/.test(k)).map(([,v]) => v);
+      return txt.some(v => CONFIG.PATRON_PUENTE.test(v)) ? "pte" : "alc";
+    }
+    return info.cats[0];
+  }
+  function agruparEstructuras(info, gs){
+    const oidName = info.oidField;
+    const porClase = {};
+    gs.forEach(g => (porClase[claseDe(info, g.attributes)] ||= []).push(g));
+    const out = [];
+    for(const [cl, lista] of Object.entries(porClase)){
+      const r = CONFIG.AGRUPAR_M?.[cl] || 0;
+      if(!r){ lista.forEach(g => { g.attributes.__clase = cl; out.push(g); }); continue; }
+      const usado = new Array(lista.length).fill(false);
+      for(let i = 0; i < lista.length; i++){
+        if(usado[i]) continue;
+        usado[i] = true; const grupo = [lista[i]], cola = [lista[i]];
+        while(cola.length){
+          const p = cola.pop().geometry; if(!p) continue;
+          for(let j = 0; j < lista.length; j++){
+            if(usado[j]) continue; const q = lista[j].geometry; if(!q) continue;
+            if((p.x-q.x)**2 + (p.y-q.y)**2 <= r*r){ usado[j] = true; grupo.push(lista[j]); cola.push(lista[j]); }
+          }
         }
-        const of = oidField(u);
-        r.features.forEach((f) => {
-          const a = Object.assign({}, f.attributes);
-          a._u = i;
-          a._oid = a[of] ?? (f.getObjectId ? f.getObjectId() : null);
-          out.push(a);
-        });
-      } catch (e) { console.warn(e); }
+        const a = { ...grupo[0].attributes, __clase: cl, __oids: grupo.map(g => g.attributes[oidName]) };
+        if(grupo.length > 1){
+          a["Sólidos que la componen"] = grupo.length;
+          for(const k of Object.keys(grupo[0].attributes)){
+            if(k === oidName || typeof grupo[0].attributes[k] !== "string") continue;
+            const vs = [...new Set(grupo.map(g => g.attributes[k]).filter(Boolean))];
+            if(vs.length > 1) a[k] = vs.slice(0, 5).join(" · ") + (vs.length > 5 ? ` (+${vs.length-5})` : "");
+          }
+        }
+        const pts = grupo.map(g => g.geometry).filter(Boolean);
+        const geom = pts.length ? new Point({ x: pts.reduce((s,p)=>s+p.x,0)/pts.length, y: pts.reduce((s,p)=>s+p.y,0)/pts.length,
+                                             z: pts.reduce((s,p)=>s+(p.z||0),0)/pts.length, spatialReference: pts[0].spatialReference }) : null;
+        out.push({attributes:a, geometry:geom});
+      }
+    }
+    info.estructuras = out.length;
+    return out;
+  }
+
+  async function leerVista(info){
+    try{
+      const lv = await view.whenLayerView(info.layer);
+      const q = lv.createQuery(); q.outFields = ["*"]; q.returnGeometry = true;
+      return (await lv.queryFeatures(q)).features;
+    }catch(e){ return []; }
+  }
+
+  function campo(fields, re, prefer){
+    if(prefer){ const f = fields.find(f => f.name.toUpperCase() === prefer.toUpperCase()); if(f) return f.name; }
+    const f = fields.find(f => re.test(f.name) || re.test(f.alias || "")); return f ? f.name : null;
+  }
+  function centro(g){
+    if(!g) return null;
+    if(g.type === "point") return {x:g.x, y:g.y};
+    const c = g.centroid || g.extent?.center; return c ? {x:c.x, y:c.y} : null;
+  }
+
+  function agregar(info, g){
+    const a = g.attributes || {};
+    const oid = a[info.oidField] ?? (typeof g.getObjectId === "function" ? g.getObjectId() : null);
+    const key = info.idx + ":" + (oid ?? JSON.stringify(a));
+    if(S.keys.has(key)) return null;
+    S.keys.add(key);
+    const cat = a.__clase || claseDe(info, a);
+    let pv = info.fProg ? parseProg(a[info.fProg]) : null;
+    if(pv == null && cat === "prog"){
+      for(const v of Object.values(a)){ if(typeof v === "string" && /\d+\s*\+\s*\d+/.test(v)){ pv = parseProg(v); break; } }
+    }
+    // Tramo: 1) campo TRAMO  2) texto tipo "C_T01" en el nombre/atributos  3) título de la capa
+    let tr = info.fTramo ? tramoDeValor(a[info.fTramo]) : null;
+    if(tr == null){
+      const vals = [info.fNom && a[info.fNom], ...Object.values(a)];
+      for(const v of vals){ const t = tramoEnTexto(v); if(t != null && t > 0 && (!info.tTit.length || info.tTit.includes(t))){ tr = t; break; } }
+    }
+    const F = {
+      id: S.feats.length, cat, info, g, a, oid, oids: a.__oids || (oid != null ? [oid] : []),
+      nombre: (info.fNom && a[info.fNom]) || (info.fProg && a[info.fProg]) || (catN(cat).n.replace(/s$/,"") + " " + (oid ?? S.feats.length)),
+      tramos: tr != null ? [tr] : info.tTit.slice(), tramoFijo: tr != null,
+      prog: pv, progAprox: false, pt: centro(g.geometry)
+    };
+    S.feats.push(F);
+    if(cat === "prog" && F.pt && pv != null) S.progPts.push(F);
+    return F;
+  }
+
+  // Si existen capas vectoriales de alcantarillas/puentes, ellas dan el conteo y la ubicación.
+  // Los modelos 3D (multipatch) de esas clases salen de los conteos y se vinculan al punto más cercano.
+  function vincularModelos(){
+    const OBRAS = ["alc","pte"];
+    const hayVector = S.feats.some(F => OBRAS.includes(F.cat) && !esModelo(F.info));
+    S.modelos = [];
+    if(!hayVector) return;
+    S.infos.filter(i => esModelo(i) && i.cats.some(c => OBRAS.includes(c))).forEach(i => { i.soloModelo = true; i.viva = false; });
+    S.modelos = S.feats.filter(F => F.info.soloModelo);
+    S.feats = S.feats.filter(F => !F.info.soloModelo);
+    S.feats.forEach((F, i) => F.id = i);
+    const r2 = CONFIG.VINCULO_M ** 2;
+    const libres = new Set(S.modelos);
+    // primero cada punto toma el modelo libre más cercano de su misma clase; luego de cualquier clase
+    for(const mismaClase of [true, false]){
+      for(const F of S.feats){
+        if(!OBRAS.includes(F.cat) || F.modelo || !F.pt) continue;
+        let best = null, bd = r2;
+        for(const M of libres){
+          if(!M.pt || (mismaClase && M.cat !== F.cat)) continue;
+          if(F.tramos.length && M.tramos.length && !M.tramos.some(t => F.tramos.includes(t))) continue;
+          const d = (M.pt.x-F.pt.x)**2 + (M.pt.y-F.pt.y)**2; if(d < bd){ bd = d; best = M; }
+        }
+        if(best){ F.modelo = best; best.vinculado = F; libres.delete(best); }
+      }
+    }
+  }
+
+  function nombresUnicos(lista){
+    const cuenta = {}; lista.forEach(F => cuenta[F.cat + "|" + F.nombre] = (cuenta[F.cat + "|" + F.nombre] || 0) + 1);
+    const n = {};
+    lista.filter(F => cuenta[F.cat + "|" + F.nombre] > 1).sort((a,b) => (a.pt?.x ?? 0) - (b.pt?.x ?? 0))
+      .forEach(F => { const k = F.cat + "|" + F.nombre; n[k] = (n[k] || 0) + 1; F.nombre = `${catN(F.cat).n.replace(/s$/,"")} ${String(n[k]).padStart(2,"0")} · ${F.nombre}`; });
+  }
+
+  function asignarEspacial(lista){
+    if(!S.progPts.length) return;
+    for(const F of lista){
+      if(F.cat === "prog" || !F.pt) continue;
+      let best = null, bd = Infinity;
+      for(const P of S.progPts){
+        if(F.tramos.length && P.tramos.length && !P.tramos.some(t => F.tramos.includes(t))) continue;
+        const d = (P.pt.x-F.pt.x)**2 + (P.pt.y-F.pt.y)**2; if(d < bd){ bd = d; best = P; }
+      }
+      if(best && Math.sqrt(bd) <= CONFIG.DIST_MAX_PROG){
+        if(F.prog == null){ F.prog = best.prog; F.progAprox = true; }
+        if(!F.tramoFijo && best.tramos.length === 1) F.tramos = best.tramos.slice();
+      }
+    }
+  }
+
+  function recalcular(){
+    const set = new Set();
+    S.infos.forEach(i => i.tTit.forEach(t => set.add(t)));
+    S.feats.forEach(F => F.tramos.length === 1 && set.add(F.tramos[0]));
+    S.tramos = [...set].filter(n => n > 0 && n < 100).sort((a,b) => a-b);
+    S.rangos = {};
+    for(const t of S.tramos){
+      const ps = S.progPts.filter(P => P.tramos.length === 1 && P.tramos[0] === t).map(P => P.prog);
+      if(ps.length) S.rangos[t] = [Math.min(...ps), Math.max(...ps)];
+    }
+    S.infos.forEach(i => {
+      i.n = S.feats.filter(F => F.info === i).length;
+      if(i.soloModelo){ const ms = S.modelos.filter(M => M.info === i); i.n = ms.length; i.vinc = ms.filter(M => M.vinculado).length; }
+    });
+  }
+
+  async function analizar(){
+    const hojas = scene.allLayers.filter(l => !NO_HOJA.includes(l.type)).toArray();
+    hojas.forEach((L, idx) => {
+      let titles = [L.title], p = L.parent;
+      while(p && p.title && p !== scene){ titles.push(p.title); p = p.parent; }
+      const path = titles.slice().reverse().join(" / ");
+      const cats = catsDe(titles.join(" "));
+      let tTit = tramosDeTitulo(L.title);
+      if(!tTit.length) for(const t of titles.slice(1)){ tTit = tramosDeTitulo(t); if(tTit.length) break; }
+      const info = { idx, layer:L, title:L.title, path, cats, tTit, n:0, fields:[], modo:"", err:null };
+      S.infos.push(info);
+      // Encender todo lo del proyecto vial (y sus grupos padre); apagar lo que está fuera de alcance
+      if(CONFIG.CAPAS_APAGADAS.test(titles.join(" "))) L.visible = false;
+      else if(cats.length) encender(L, true);
+      info.userVis = L.visible;
+    });
+
+    await Promise.all(S.infos.filter(i => i.cats.length).map(async info => {
+      try{
+        const fs = await leerCapa(info);
+        info.fTramo = campo(info.fields, /TRAMO/i, CONFIG.CAMPO_TRAMO);
+        info.fProg  = campo(info.fields, /PROG|^KM$|^PK$/i, CONFIG.CAMPO_PROGRESIVA);
+        info.fNom   = info.fields.find(f => NAME_RE.test(f.name) && f.type === "string")?.name
+                   || info.fields.find(f => f.type === "string" && !SKIP_RE.test(f.name))?.name;
+        const nuevos = fs.map(g => agregar(info, g)).filter(Boolean);
+        nombresUnicos(nuevos);
+      }catch(e){ info.err = e.message || String(e); console.warn(info.title, e); }
     }));
-    if (token !== loadToken) return;
-    rows = out;
-    renderTable();
-    updateKpis();
-    if (chartState && chartState.fromRows) renderChart();
-    // Selección automática al abrir: solo una vez y solo si el usuario no eligió otra cosa
-    if (autoSel && autoSel.token === loadToken && !selKey && rows.length) {
-      const r = (autoSel.oid && rows.find((x) => String(x._oid) === String(autoSel.oid))) || rows[0];
-      autoSel = null;
-      selectRow(r._u, r._oid, false);
+    vincularModelos();
+    asignarEspacial(S.feats);
+    asignarEspacial(S.modelos);
+    S.modelos.forEach(M => { if(M.vinculado) M.tramos = M.vinculado.tramos.slice(); });
+    recalcular();
+    if(!S.feats.some(F => F.cat === S.cat)) S.cat = (CATS.find(c => S.feats.some(F => F.cat === c.k)) || CATS[1]).k;
+    const tot = S.feats.length;
+    setStatus(true, `${IdentityManager.credentials[0]?.userId || "Conectado"} · ${tot} elementos`);
+    if(!tot) toast("No se pudieron leer elementos de las capas. Abre «Diagnóstico» y envíame una captura.", 8000);
+    renderDiag();
+  }
+
+  let releyendo = false;
+  async function releerVivas(){
+    const vivas = S.infos.filter(i => i.viva && !i.soloModelo && i.layer.visible);
+    if(!vivas.length || releyendo) return;
+    releyendo = true;
+    const nuevos = [];
+    for(const info of vivas){ (await leerVista(info)).forEach(g => { const F = agregar(info, g); if(F) nuevos.push(F); }); }
+    if(nuevos.length){ asignarEspacial(nuevos); recalcular(); renderAll(); renderDiag(); }
+    releyendo = false;
+  }
+
+  /* ---------- tramos: filtro y vuelo ---------- */
+  const enTramo = F => S.tramo === "ALL" || F.tramos.includes(+S.tramo);
+
+  async function setTramo(t){
+    S.tramo = String(t);
+    renderAll();
+    await aplicarFiltro();
+    if(R.abierto){ rutaDeTramo(S.tramo); return; }
+    volarTramo();
+  }
+
+  async function aplicarFiltro(){
+    const t = +S.tramo;
+    for(const info of S.infos){
+      if(!info.cats.length) continue;
+      const L = info.layer;
+      if(S.tramo === "ALL"){
+        L.visible = info.userVis;
+        try{ (await view.whenLayerView(L)).filter = null; }catch(e){}
+        continue;
+      }
+      const fs = info.soloModelo ? S.modelos.filter(M => M.info === info) : S.feats.filter(F => F.info === info);
+      const dentro = fs.filter(F => F.tramos.includes(t));
+      const cubre = info.tTit.length ? info.tTit.includes(t) : (dentro.length > 0 || !fs.length || fs.every(F => !F.tramos.length));
+      const vis = info.userVis && cubre;
+      if(vis) encender(L, true); else L.visible = false;
+      if(!vis) continue;
+      try{
+        const lv = await view.whenLayerView(L);
+        const asignados = fs.filter(F => F.tramos.length === 1);
+        lv.filter = (asignados.length && dentro.length < fs.length && dentro.every(F => F.oids.length) && !info.viva)
+          ? new FeatureFilter({ objectIds: dentro.flatMap(F => F.oids) }) : null;
+      }catch(e){}
     }
   }
-  let autoSel = null;
 
-  function fmt(fname, v) {
-    if (v === null || v === undefined || v === "") return "—";
-    const f = fieldMap.get(fname);
-    if (f && f.domain && f.domain.type === "coded-value") {
-      const cv = f.domain.codedValues.find((c) => c.code === v); if (cv) return cv.name;
+  function extentFeats(lista){
+    let ext = null;
+    for(const F of lista){
+      const g = F.g.geometry; if(!g) continue;
+      const e = g.type === "point" ? new Extent({xmin:g.x-25,ymin:g.y-25,xmax:g.x+25,ymax:g.y+25,spatialReference:g.spatialReference}) : g.extent;
+      if(!e) continue;
+      try{ ext = ext ? ext.union(e) : e.clone(); }catch(err){}
     }
-    if (f && (f.type === "date" || f.type === "timestamp-offset")) { const d = new Date(v); return isNaN(d) ? String(v) : d.toLocaleString("es-PE"); }
-    if (typeof v === "number") return nf.format(v);
-    return String(v);
+    return ext;
   }
-
-  function tableCols() {
-    const cols = shown.map((f) => ({ name: f.name, label: fieldLabel(f), num: NUM.has(f.type) }));
-    if (units.length > 1) cols.unshift({ name: "_comp", label: "Componente", num: false });
-    return cols;
-  }
-  const cellVal = (r, c) => c.name === "_comp" ? units[r._u].title : r[c.name];
-  const cellTxt = (r, c) => c.name === "_comp" ? units[r._u].title : fmt(c.name, r[c.name]);
-  const rowKey = (u, oid) => u + ":" + oid;
-
-  function renderTable() {
-    if (!active) return;
-    const cols = tableCols();
-    const q = $("#tblFilter").value.trim().toLowerCase();
-    let data = q ? rows.filter((r) => cols.some((c) => String(cellTxt(r, c)).toLowerCase().includes(q))) : rows;
-    if (sortState.f) {
-      const c = cols.find((x) => x.name === sortState.f), d = sortState.dir;
-      if (c) data = [...data].sort((a, b) => { const x = cellVal(a, c), y = cellVal(b, c); if (x == null) return 1; if (y == null) return -1; return (x > y ? 1 : x < y ? -1 : 0) * d; });
+  function objetivoTramo(){
+    if(S.tramo === "ALL"){
+      const f = extentFeats(S.feats);
+      return f ? [f.expand(1.15)] : S.infos.filter(i => i.cats.length && i.layer.fullExtent).map(i => i.layer.fullExtent);
     }
-    const MAX = 1000, shownRows = data.slice(0, MAX);
-    if (!rows.length) {
-      const anyAttr = units.some(hasFields);
-      $("#tbl").innerHTML = '<div class="empty">' + (anyAttr ? "No hay elementos cargados en la vista. Pulsa ⌖ para acercarte al modelo." : "Esta capa no tiene atributos consultables.") + "</div>";
-    } else {
-      const head = cols.map((c) => `<th class="${c.num ? "num" : ""}" data-f="${esc(c.name)}">${esc(c.label)}${sortState.f === c.name ? (sortState.dir > 0 ? " ▲" : " ▼") : ""}</th>`).join("");
-      const body = shownRows.map((r) => {
-        const k = rowKey(r._u, r._oid);
-        return `<tr data-k="${esc(k)}" class="${k === selKey ? "sel" : ""}">` +
-          cols.map((c) => `<td class="${c.num ? "num" : ""}">${esc(cellTxt(r, c))}</td>`).join("") + "</tr>";
-      }).join("");
-      $("#tbl").innerHTML = `<table class="grid"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
-    }
-    $("#tblInfo").textContent = rows.length ? `${nf0.format(data.length)} de ${nf0.format(rows.length)} en vista${data.length > MAX ? " · mostrando " + MAX : ""}` : "";
-  }
-
-  $("#tbl").addEventListener("click", (e) => {
-    const th = e.target.closest("th");
-    if (th) { const f = th.dataset.f; sortState = sortState.f === f ? { f, dir: -sortState.dir } : { f, dir: 1 }; renderTable(); return; }
-    const tr = e.target.closest("tr[data-k]");
-    if (!tr) return;
-    const [u, oid] = tr.dataset.k.split(":");
-    selectRow(Number(u), Number(oid), true);
-  });
-  $("#tblFilter").addEventListener("input", renderTable);
-  $("#btnRefresh").onclick = () => units.length && loadTable(loadToken);
-
-  function download(name, text) {
-    const blob = new Blob(["﻿" + text], { type: "text/csv;charset=utf-8" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob); a.download = name;
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-  }
-  const csvCell = (v) => { const s = v == null ? "" : String(v); return /[;"\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
-
-  $("#btnCsv").onclick = () => {
-    if (!rows.length) return toast("No hay filas para exportar.");
-    const cols = tableCols();
-    const lines = [cols.map((c) => csvCell(c.label)).join(";")]
-      .concat(rows.map((r) => cols.map((c) => csvCell(cellVal(r, c))).join(";")));
-    download((active.title || "modelo").replace(/[^\w\-]+/g, "_") + ".csv", lines.join("\r\n"));
-  };
-
-  /* =================== KPIs =================== */
-  function mostFreq(f) {
-    if (!f) return null;
-    const m = new Map();
-    rows.forEach((r) => { const v = r[f.name]; if (v != null && v !== "") m.set(v, (m.get(v) || 0) + 1); });
-    let best = null, n = 0; m.forEach((c, v) => { if (c > n) { n = c; best = v; } });
-    return best;
-  }
-
-  function updateKpis() {
-    const fT = findField(TRAMO_RX), fP = findField(PROG_RX), fV = findField(VOL_RX), fM = findField(MAT_RX);
-    const tr = mostFreq(fT), pg = mostFreq(fP);
-    const ctx = [tr, pg != null ? "Prog. " + pg : null].filter(Boolean).join(" · ");
-    if (ctx) $("#kModelS").textContent = ctx + (active.node === "comp" ? " · " + active.model.title : "");
-
-    $("#kCount").textContent = nf0.format(rows.length);
-    $("#kCountS").textContent = units.length > 1 ? `en ${units.length} componentes` : (rows.length ? "cargados ahora" : "acércate al modelo");
-
-    if (fV) {
-      const withV = rows.filter((r) => r[fV.name] != null && !isNaN(Number(r[fV.name])));
-      const sum = withV.reduce((a, r) => a + Number(r[fV.name]), 0);
-      $("#kVol").innerHTML = withV.length ? nf2.format(sum) + " <small>m³</small>" : "—";
-      $("#kVolS").textContent = withV.length ? `${nf0.format(withV.length)} elementos con volumen` : "sin valores en vista";
-    } else { $("#kVol").textContent = "—"; $("#kVolS").textContent = "sin parámetro de volumen"; }
-
-    if (fM) {
-      const set = new Set(rows.map((r) => r[fM.name]).filter((v) => v != null && v !== ""));
-      $("#kMat").textContent = set.size ? nf0.format(set.size) : "—";
-      $("#kMatS").textContent = set.size ? String(mostFreq(fM)) : "sin datos";
-    } else { $("#kMat").textContent = "—"; $("#kMatS").textContent = "sin parámetro de material"; }
-  }
-
-  function updateArtKpi() {
-    const artCats = cats.filter((c) => c.art);
-    const n = artCats.reduce((a, c) => a + c.models.filter((m) => m.kind === "building-scene" || m.kind === "scene").length, 0);
-    $("#kArt").textContent = nf0.format(n);
-    $("#kArtS").textContent = `${artCats.length} categorías · ${models.length} capas en total`;
-  }
-
-  /* =================== selección =================== */
-  function findUnit(lyr) {
-    if (!lyr) return null;
-    return comps.find((c) => c.layer === lyr) || models.find((m) => m.layer === lyr && m.kind !== "building-scene") || null;
-  }
-
-  /* Capas 3D (BIM, objetos 3D, multipatch): tienen prioridad al hacer clic,
-     así un clic sobre un muro no lo "roba" una capa 2D dibujada sobre el terreno */
-  const solidLayers = () => models
-    .filter((m) => m.kind === "building-scene" || (m.kind === "scene" && m.layer.geometryType !== "point") ||
-                   (m.kind === "feature" && m.layer.geometryType === "multipatch"))
-    .filter((m) => m.layer.visible !== false)
-    .map((m) => m.layer);
-
-  function firstHit(ht) {
-    for (const r of (ht && ht.results) || []) {
-      if (!r.graphic) continue;
-      const unit = findUnit(r.graphic.sourceLayer) || findUnit(r.graphic.layer);
-      if (unit) return { unit, g: r.graphic };
+    const t = +S.tramo;
+    // 1) elementos asignados a ese tramo (exactos)
+    const exactos = S.feats.filter(F => F.tramos.length === 1 && F.tramos[0] === t);
+    const e1 = extentFeats(exactos);
+    if(e1) return [e1.expand(1.3)];
+    // 2) extensión de las capas cuyo título corresponde a ese tramo (la más específica)
+    const cand = S.infos.filter(i => i.tTit.includes(t) && i.layer.fullExtent);
+    if(cand.length){
+      const min = Math.min(...cand.map(i => i.tTit.length));
+      const sel = cand.filter(i => i.tTit.length === min);
+      if(min > 1) toast(`El tramo ${t} no tiene elementos con tramo propio: se muestra el grupo de tramos ${sel[0].tTit[0]}–${sel[0].tTit.at(-1)}.`);
+      return sel.map(i => i.layer.fullExtent);
     }
     return null;
   }
-
-  async function pick(e, solidOnly) {
-    const inc = solidLayers();
-    let h = null;
-    if (inc.length) { try { h = firstHit(await view.hitTest(e, { include: inc })); } catch (err) {} }
-    if (!h && !solidOnly) { try { h = firstHit(await view.hitTest(e)); } catch (err) {} }
-    return h;
+  function volarTramo(){
+    const tgt = objetivoTramo();
+    if(!tgt || !tgt.length){ toast("No encontré la ubicación de este tramo en las capas."); return; }
+    view.goTo({ target: tgt.length === 1 ? tgt[0] : tgt, tilt: 50 }, { duration: 1600 })
+      .catch(e => { if(e.name !== "AbortError") console.warn(e); });
   }
 
-  let clickSeq = 0;
-  async function onViewClick(e) {
-    const seq = ++clickSeq;
-    const h = await pick(e, false);
-    if (seq !== clickSeq) return;            // hubo un clic más reciente
-    if (!h) { clearSelection(); return; }
-    const { unit, g } = h;
-    const oid = typeof g.getObjectId === "function" ? g.getObjectId() : g.attributes && g.attributes[oidField(unit)];
-    let idx = units.indexOf(unit);
-    if (idx < 0) {
-      await activate(unit.node === "comp" ? unit.model : unit);
-      if (seq !== clickSeq) return;
-      idx = units.indexOf(unit);
-      if (idx < 0) return;
+  /* ---------- render ---------- */
+  function renderAll(){ renderStrip(); renderTramoCard(); renderKpis(); renderBars(); renderList(); renderCapas(); }
+
+  function renderStrip(){
+    const el = $("strip");
+    const cuenta = t => S.feats.filter(F => F.cat !== "prog" && F.tramos.length === 1 && F.tramos[0] === t).length;
+    let h = `<button class="tr all ${S.tramo==="ALL"?"sel":""}" data-t="ALL"><b>Todos</b><span>${S.tramos.length} tramos</span></button>`;
+    for(const t of S.tramos){
+      const r = S.rangos[t], n = cuenta(t);
+      h += `<button class="tr ${S.tramo==String(t)?"sel":""}" data-t="${t}" title="Tramo ${t}${r?" · "+fmtProg(r[0])+" – "+fmtProg(r[1]):""} · ${n} elementos"><b>T${t}</b><span>${r ? fmtProg(r[0]) : (n ? n + " elem." : "&nbsp;")}</span></button>`;
     }
-    selectRow(idx, oid, false, g.attributes);
+    el.innerHTML = h;
+    el.querySelectorAll(".tr").forEach(b => b.onclick = () => setTramo(b.dataset.t));
   }
 
-  /* Cursor de mano al pasar sobre un sólido (consulta liviana y espaciada) */
-  let hoverBusy = false, hoverLast = 0;
-  function onHover(e) {
-    const now = Date.now();
-    if (hoverBusy || now - hoverLast < 150 || view.interacting) return;
-    hoverBusy = true; hoverLast = now;
-    pick(e, true).then((h) => { view.container.style.cursor = h ? "pointer" : ""; })
-      .finally(() => { hoverBusy = false; });
-  }
-
-  async function fetchAttrs(u, oid) {
-    const inRows = rows.find((r) => r._u === units.indexOf(u) && r._oid === oid);
-    if (inRows) return inRows;
-    try {
-      if (unitKind(u) === "feature") {
-        const r = await u.layer.queryFeatures({ objectIds: [oid], outFields: ["*"], returnGeometry: false });
-        return r.features[0] && r.features[0].attributes;
-      }
-      const lv = await lvFor(u);
-      const query = async () => {
-        const q = lv.createQuery ? lv.createQuery() : {};
-        q.objectIds = [oid]; q.outFields = ["*"]; q.returnGeometry = false;
-        const r = await lv.queryFeatures(q);
-        return r.features[0] && r.features[0].attributes;
-      };
-      let a = await query();
-      // Si los parámetros recién pedidos aún no llegan, esperar a que la capa termine de cargarlos
-      if (!shownAll && (!a || !shown.some((f) => f.name in a))) {
-        await withTimeout(reactiveUtils.whenOnce(() => !lv.updating), 5000);
-        a = (await query()) || a;
-      }
-      return a;
-    } catch (e) { return null; }
-  }
-
-  async function selectRow(ui, oid, zoom, fallback) {
-    if (oid == null || isNaN(oid)) return;
-    const u = units[ui]; if (!u) return;
-    selKey = rowKey(ui, oid);
-    if (hl) { hl.remove(); hl = null; }
-    $("#props").innerHTML = '<div class="empty">Leyendo parámetros…</div>';
-    try { const lv = await lvFor(u); if (lv && lv.highlight) hl = lv.highlight(oid); } catch (e) {}
-    const attrs = (await fetchAttrs(u, oid)) || fallback || null;
-    renderProps(ui, oid, attrs);
-    document.querySelectorAll("#tbl tr.sel").forEach((t) => t.classList.remove("sel"));
-    const tr = document.querySelector(`#tbl tr[data-k="${CSS.escape(selKey)}"]`);
-    if (tr) { tr.classList.add("sel"); tr.scrollIntoView({ block: "nearest" }); }
-    if (zoom) zoomFeature(u, oid);
-  }
-
-  async function zoomFeature(u, oid) {
-    try {
-      let res;
-      if (unitKind(u) === "feature") res = await u.layer.queryExtent({ objectIds: [oid] });
-      else { const lv = await lvFor(u); res = await lv.queryExtent({ objectIds: [oid] }); }
-      if (res && res.extent) view.goTo(res.extent.clone().expand(2.5)).catch(() => {});
-    } catch (e) { toast("No se pudo ubicar el elemento en la vista."); }
-  }
-
-  function clearSelection() {
-    selKey = null;
-    if (hl) { hl.remove(); hl = null; }
-    $("#propsTop").innerHTML = ""; $("#propCount").textContent = "";
-    $("#props").innerHTML = '<div class="empty">Haz clic en un sólido del modelo 3D o en una fila de la tabla para ver sus parámetros.</div>';
-    document.querySelectorAll("#tbl tr.sel").forEach((t) => t.classList.remove("sel"));
-  }
-
-  async function isolate(ui, oid) {
-    for (let i = 0; i < units.length; i++) {
-      const u = units[i];
-      if (i === ui) {
-        try { const lv = await lvFor(u); lv.filter = new FeatureFilter({ objectIds: [oid] }); } catch (e) {}
-      } else {
-        if (!isolated.has(u.layer)) isolated.set(u.layer, u.layer.visible);
-        u.layer.visible = false;
-      }
-    }
-  }
-  async function unisolate() {
-    for (const u of units) { try { const lv = await lvFor(u); if (lv) lv.filter = null; } catch (e) {} }
-    isolated.forEach((v, l) => { l.visible = v; });
-    isolated.clear();
-    renderTree();
-  }
-
-  function renderProps(ui, oid, attrs) {
-    const u = units[ui];
-    const sub = u.node === "comp" ? u.model.title + " · " : "";
-    $("#propsTop").innerHTML = `
-      <div class="props-top">
-        <div class="id">${esc(u.title)} <small>· ${esc(sub)}ID ${esc(oid)}</small></div>
-        <input id="propFilter" placeholder="Buscar parámetro…" style="flex:1;min-width:120px;padding:3px 8px">
-        <button class="tbtn" id="pZoom">Acercar</button>
-        <button class="tbtn" id="pIso" title="Mostrar solo este elemento">Aislar</button>
-        <button class="tbtn" id="pAll" title="Quitar aislamiento">Todo</button>
-        <button class="tbtn" id="pCopy">Copiar</button>
-      </div>`;
-    if (!attrs) {
-      $("#props").innerHTML = '<div class="empty">No se pudieron leer los atributos de este elemento.</div>';
-      $("#propCount").textContent = "";
+  function renderTramoCard(){
+    const n = S.feats.filter(F => F.cat !== "prog" && enTramo(F)).length;
+    if(S.tramo === "ALL"){
+      $("tNombre").textContent = "Todo el corredor";
+      const all = Object.values(S.rangos).flat();
+      $("tRango").textContent = (all.length ? `Km ${fmtProg(Math.min(...all))} – ${fmtProg(Math.max(...all))} · ` : "") + `${n} elementos`;
     } else {
-      const list = shown.filter((f) => f.name in attrs);
-      $("#props").innerHTML = list.length ? list.map((f) => {
-        const v = attrs[f.name];
-        return `<div class="prop" data-k="${esc(fieldLabel(f).toLowerCase())}">
-          <div class="pn">${esc(fieldLabel(f))}</div><div class="pv ${typeof v === "number" ? "num" : ""}">${esc(fmt(f.name, v))}</div></div>`;
-      }).join("") : '<div class="empty">Este elemento no tiene los parámetros configurados.</div>';
-      $("#propCount").textContent = list.length + " parámetros";
-      $("#pCopy").onclick = () => {
-        const txt = list.map((f) => fieldLabel(f) + "\t" + fmt(f.name, attrs[f.name])).join("\n");
-        (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(() => toast("Parámetros copiados."), () => toast("No se pudo copiar."));
-      };
+      const r = S.rangos[+S.tramo];
+      $("tNombre").textContent = "Tramo " + S.tramo;
+      $("tRango").textContent = (r ? `Km ${fmtProg(r[0])} – ${fmtProg(r[1])} · ${((r[1]-r[0])/1000).toFixed(2)} km · ` : "") + `${n} elementos`;
     }
-    $("#propFilter").oninput = (e) => {
-      const q = e.target.value.trim().toLowerCase();
-      document.querySelectorAll("#props .prop").forEach((p) => { p.style.display = !q || p.dataset.k.includes(q) ? "" : "none"; });
-    };
-    $("#pZoom").onclick = () => zoomFeature(u, oid);
-    $("#pIso").onclick = () => isolate(ui, oid);
-    $("#pAll").onclick = () => unisolate();
   }
 
-  /* =================== análisis por parámetro =================== */
-  function canColor(u) {
-    const k = unitKind(u);
-    if (k === "building") return true;
-    if (k === "scene") return u.layer.geometryType === "mesh";
-    if (k === "feature") return u.layer.geometryType === "multipatch";
-    return false;
-  }
-
-  function fillFieldSelect() {
-    const sel = $("#fieldSel");
-    const opts = shown.filter((f) => f.type !== "oid" && f.type !== "global-id");
-    sel.innerHTML = opts.length
-      ? opts.map((f) => `<option value="${esc(f.name)}">${esc(fieldLabel(f))}${NUM.has(f.type) ? " (núm.)" : ""}</option>`).join("")
-      : "<option value=''>Sin parámetros</option>";
-    // Por defecto: metrado de volumen; si el modelo no lo tiene, Family
-    const pref = opts.find((f) => VOL_RX.test(fKey(f)))
-              || opts.find((f) => FAMILY_RX.test(f.name) || FAMILY_RX.test(f.alias || "")) || opts[0];
-    if (pref) sel.value = pref.name;
-    const can = units.some(canColor);
-    $("#btnColor").disabled = !can || !opts.length; $("#btnReset").disabled = !can;
-  }
-
-  async function cachedStats(u, field) {
-    if (!u.layer.queryCachedStatistics) return null;
-    try { const r = await u.layer.queryCachedStatistics(field); return r ? (r.stats || r) : null; }
-    catch (e) { return null; }
-  }
-
-  function statsFromRows(fname, numeric) {
-    const vals = rows.map((r) => r[fname]).filter((v) => v !== null && v !== undefined && v !== "");
-    if (numeric) {
-      const ns = vals.map(Number).filter((x) => !isNaN(x));
-      if (!ns.length) return null;
-      let min = Infinity, max = -Infinity, sum = 0;
-      ns.forEach((x) => { if (x < min) min = x; if (x > max) max = x; sum += x; });
-      const bins = 12, counts = new Array(bins).fill(0), w = (max - min) / bins || 1;
-      ns.forEach((x) => { counts[Math.min(bins - 1, Math.floor((x - min) / w))]++; });
-      return { min, max, sum, avg: sum / ns.length, count: ns.length, histogram: { minimum: min, maximum: max, counts } };
-    }
-    const map = new Map();
-    vals.forEach((v) => map.set(v, (map.get(v) || 0) + 1));
-    return { count: vals.length, mostFrequentValues: [...map.entries()].map(([value, count]) => ({ value, count })).sort((a, b) => b.count - a.count) };
-  }
-
-  async function renderChart() {
-    const fname = $("#fieldSel").value;
-    if (!active || !fname) { $("#chart").innerHTML = '<div class="empty">Sin parámetros para analizar.</div>'; chartState = null; return; }
-    const f = fieldMap.get(fname), numeric = !!(f && NUM.has(f.type));
-    const isVol = !!f && VOL_RX.test(fKey(f));
-    let st = null, fromRows = true;
-    if (!isVol && units.length === 1 && unitKind(units[0]) === "scene") {
-      const c = await cachedStats(units[0], fname);
-      if (c && (numeric ? c.min != null : (c.mostFrequentValues || []).length)) { st = c; fromRows = false; }
-    }
-    if (!st) st = statsFromRows(fname, numeric || isVol);
-    if ($("#fieldSel").value !== fname) return;
-    const prevColored = chartState && chartState.colored === fname ? fname : null;
-    chartState = { fname, numeric: numeric || isVol, st, fromRows, colored: prevColored };
-    if (isVol) { renderMetrado(f); return; }
-    if (!st) { $("#chart").innerHTML = '<div class="empty">Sin valores para este parámetro en la vista.</div>'; return; }
-
-    const srcTxt = fromRows ? `Calculado con ${nf0.format(rows.length)} elementos cargados en la vista` : "Estadísticas del modelo completo";
-    let html = "";
-    if (numeric) {
-      const card = (l, v) => `<div class="st"><div class="l">${l}</div><div class="v">${v == null ? "—" : nf.format(v)}</div></div>`;
-      html += `<div class="stats">${card("Mín", st.min)}${card("Máx", st.max)}${card("Promedio", st.avg)}${card("Suma", st.sum)}${card("N.º valores", st.count)}${card("Desv. est.", st.stddev)}</div>`;
-      const h = st.histogram;
-      if (h && h.counts && h.counts.length) {
-        const mx = Math.max(...h.counts) || 1;
-        html += `<div class="hist">${h.counts.map((c) => `<div style="height:${(c / mx) * 100}%" title="${nf0.format(c)}"></div>`).join("")}</div>
-                 <div class="hist-ax"><span>${nf.format(h.minimum)}</span><span>${nf.format(h.maximum)}</span></div>`;
-      }
-      if (prevColored) html += `<div class="ramp">${RAMP.map((c) => `<div style="background:${c}"></div>`).join("")}</div>`;
-    } else {
-      const top = (st.mostFrequentValues || []).slice(0, 12), mx = top.length ? top[0].count : 1;
-      html += `<div class="bars">${top.map((v, i) => {
-        const col = i < PALETTE.length ? PALETTE[i] : "#c8c8c8";
-        return `<div class="bar"><span class="sw" style="background:${col}"></span>
-          <span class="lb" title="${esc(fmt(fname, v.value))}">${esc(fmt(fname, v.value))}</span><span class="n">${nf0.format(v.count)}</span>
-          <div class="tr"><div class="fl" style="width:${(v.count / mx) * 100}%;background:${col}"></div></div></div>`;
-      }).join("")}</div>`;
-      if ((st.mostFrequentValues || []).length > 12) html += `<div class="src">+${st.mostFrequentValues.length - 12} valores más</div>`;
-    }
-    html += `<div class="src">${srcTxt}</div>`;
-    $("#chart").innerHTML = html;
-  }
-  $("#fieldSel").addEventListener("change", renderChart);
-
-  /* Metrado de volumen por material del modelo seleccionado */
-  let metradoRows = [];
-  function renderMetrado(fV) {
-    const fM = findField(MAT_RX) || findField(FAMILY_RX);
-    const groups = new Map();
-    let total = 0, n = 0;
-    rows.forEach((r) => {
-      const v = Number(r[fV.name]);
-      if (r[fV.name] == null || isNaN(v)) return;
-      const key = fM ? (r[fM.name] ?? "(sin material)") : "(sin material)";
-      const g = groups.get(key) || { mat: key, n: 0, vol: 0 };
-      g.n++; g.vol += v; groups.set(key, g);
-      total += v; n++;
+  function renderKpis(){
+    $("kpis").innerHTML = CATS.map(c => {
+      const capas = S.infos.filter(i => i.cats.includes(c.k) && !i.soloModelo);
+      const n = S.feats.filter(F => F.cat === c.k && enTramo(F)).length;
+      const viva = capas.some(i => i.viva);
+      return `<button class="kpi ${S.cat===c.k?"sel":""} ${capas.length?"":"off"}" style="--k:var(${c.c})" data-k="${c.k}" title="${capas.length ? capas.map(i=>i.title).join(", ") : "Sin capa en la escena"}${viva?" · modelo 3D: el conteo crece al navegar":""}"><b>${n}${viva?"<span style='font-size:11px;color:var(--muted)'>+</span>":""}</b><small>${c.n}</small></button>`;
+    }).join("");
+    $("kpis").querySelectorAll(".kpi").forEach(b => b.onclick = () => {
+      if(b.classList.contains("off")) return;
+      S.cat = b.dataset.k; renderKpis(); renderBars(); renderList();
     });
-    metradoRows = [...groups.values()].sort((a, b) => b.vol - a.vol);
-    if (!metradoRows.length) {
-      $("#chart").innerHTML = '<div class="empty">No hay elementos con volumen en la vista. Pulsa ⌖ para acercarte al modelo.</div>';
+  }
+
+  function renderBars(){
+    const c = catN(S.cat);
+    $("chTitle").textContent = c.n + " por tramo";
+    const data = S.tramos.map(t => ({t, n: S.feats.filter(F => F.cat === S.cat && F.tramos.length === 1 && F.tramos[0] === t).length}));
+    const max = Math.max(1, ...data.map(d => d.n));
+    $("bars").innerHTML = data.map(d =>
+      `<div class="bar ${S.tramo==String(d.t)?"sel":""}" data-t="${d.t}" title="Tramo ${d.t}: ${d.n}"><em>${d.n||""}</em><div style="height:${(d.n/max)*50}px"></div><span>${d.t}</span></div>`).join("");
+    $("bars").querySelectorAll(".bar").forEach(b => b.onclick = () => setTramo(b.dataset.t));
+  }
+
+  function renderList(){
+    const c = catN(S.cat);
+    const lista = S.feats.filter(F => F.cat === S.cat && enTramo(F)).sort((a,b) => (a.prog??1e12) - (b.prog??1e12) || String(a.nombre).localeCompare(String(b.nombre), "es", {numeric:true}));
+    $("lTitle").textContent = c.n + (S.tramo==="ALL" ? "" : " · Tramo " + S.tramo);
+    $("lCount").textContent = lista.length;
+    if(!lista.length){
+      const viva = S.infos.some(i => i.cats.includes(S.cat) && i.viva);
+      $("list").innerHTML = `<div class="empty">Sin ${c.n.toLowerCase()} en esta selección.${viva ? " Es un modelo 3D: acércate a la zona y la lista se completará sola." : ""}</div>`;
       return;
     }
-    const groupLabel = fM ? fieldLabel(fM).replace(/^\d\d_\d\d_DEO_/i, "") : "Material";
-    const body = metradoRows.map((g, i) => {
-      const col = PALETTE[i % PALETTE.length], pct = total ? (g.vol / total) * 100 : 0;
-      return `<tr><td><span class="sw" style="background:${col}"></span>${esc(fmt(fM ? fM.name : "", g.mat))}
-        <div class="mbar"><div style="width:${pct}%;background:${col}"></div></div></td>
-        <td class="num">${nf0.format(g.n)}</td><td class="num">${nf2.format(g.vol)}</td><td class="num">${nf.format(pct)}%</td></tr>`;
-    }).join("");
-    $("#chart").innerHTML = `
-      <div class="met-h"><b>Metrado de volumen</b><span class="tot">${nf2.format(total)} <small>m³</small></span></div>
-      <table class="met">
-        <thead><tr><th>${esc(groupLabel)}</th><th class="num">Elem.</th><th class="num">Vol. (m³)</th><th class="num">%</th></tr></thead>
-        <tbody>${body}</tbody>
-        <tfoot><tr><td>Total ${esc(active.title)}</td><td class="num">${nf0.format(n)}</td><td class="num">${nf2.format(total)}</td><td class="num">100%</td></tr></tfoot>
-      </table>
-      <div class="src" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-        <span style="flex:1">Calculado con ${nf0.format(n)} elementos cargados en la vista${units.length > 1 ? " (" + units.length + " componentes)" : ""}. Acércate al modelo completo para incluirlos todos.</span>
-        <button class="tbtn" id="metCopy">Copiar</button><button class="tbtn" id="metCsv">CSV</button>
+    $("list").innerHTML = lista.slice(0, 600).map(F => `
+      <div class="item ${S.sel===F?"sel":""}" data-id="${F.id}">
+        <span class="n">${esc(F.nombre)}</span>
+        <span class="p">${F.prog!=null ? (F.progAprox?"≈ ":"") + fmtProg(F.prog) : ""}</span>
+        <span class="s">${F.tramos.length===1 ? "Tramo " + F.tramos[0] : F.tramos.length ? "Tramos " + F.tramos[0] + "–" + F.tramos.at(-1) : "Tramo s/d"} · ${esc(F.info.title)}</span>
+      </div>`).join("") + (lista.length > 600 ? `<div class="empty">Mostrando 600 de ${lista.length}. Usa la búsqueda.</div>` : "");
+    $("list").querySelectorAll(".item").forEach(d => d.onclick = () => seleccionar(S.feats[+d.dataset.id], true));
+  }
+
+  /* ---------- panel de capas y modelos ---------- */
+  function esModelo(i){ return ["scene","building-scene","integrated-mesh","point-cloud"].includes(i.layer.type); }
+  function renderCapas(){
+    const grupos = CATS.map(c => ({c, items: S.infos.filter(i => i.cats[0] === c.k || (i.cats.includes(c.k) && c.k !== "pte"))}))
+                       .filter(g => g.items.length);
+    const otras = S.infos.filter(i => !i.cats.length);
+    const fila = i => `
+      <div class="lyr">
+        <button class="sw ${i.layer.visible?"on":""}" data-i="${i.idx}" aria-label="Mostrar ${esc(i.title)}"></button>
+        <div class="nm"><b title="${esc(i.path)}">${esc(i.title)}</b>
+          <small>${esModelo(i)?'<span class="tag m3d">Modelo 3D</span>':'<span class="tag">Vector</span>'}${i.tTit.length ? "Tramos " + (i.tTit.length>1 ? i.tTit[0]+"–"+i.tTit.at(-1) : i.tTit[0]) : "Todo el corredor"}${i.soloModelo ? ` · ${i.n} estructuras, ${i.vinc} vinculadas` : i.n ? " · " + i.n + " elem." : ""}</small></div>
+        <button class="ico" data-z="${i.idx}" title="Ir a la capa">⌖</button>
+        <button class="ico" data-s="${i.idx}" title="Ver elementos">≡</button>
       </div>`;
-    const lines = (sep) => [[groupLabel, "Elementos", "Volumen (m3)"].join(sep)]
-      .concat(metradoRows.map((g) => [fmt(fM ? fM.name : "", g.mat), g.n, g.vol.toFixed(3)].join(sep)))
-      .concat([["TOTAL", n, total.toFixed(3)].join(sep)]).join("\r\n");
-    $("#metCopy").onclick = () => (navigator.clipboard ? navigator.clipboard.writeText(lines("\t")) : Promise.reject())
-      .then(() => toast("Metrado copiado. Pégalo en Excel."), () => toast("No se pudo copiar."));
-    $("#metCsv").onclick = () => download("metrado_" + (active.title || "modelo").replace(/[^\w\-]+/g, "_") + ".csv", lines(";"));
-  }
-
-  /* Colorear / Original */
-  const meshSym = (c) => ({ type: "mesh-3d", symbolLayers: [{ type: "fill", material: { color: c, colorMixMode: "replace" }, edges: { type: "solid", color: [40, 40, 40, 0.5], size: 0.6 } }] });
-
-  $("#btnColor").onclick = () => {
-    if (!chartState || !chartState.st) return toast("Elige un parámetro con valores en la vista.");
-    const targets = units.filter(canColor);
-    if (!targets.length) return toast("Este tipo de capa no admite cambiar la simbología.");
-    const { fname, numeric, st } = chartState;
-    let renderer;
-    if (numeric) {
-      const min = st.min, max = st.max, step = (max - min) / RAMP.length || 1;
-      renderer = {
-        type: "class-breaks", field: fname, defaultSymbol: meshSym("#bdbdbd"),
-        classBreakInfos: RAMP.map((c, i) => ({ minValue: min + i * step, maxValue: i === RAMP.length - 1 ? max : min + (i + 1) * step, symbol: meshSym(c) }))
-      };
-    } else {
-      const vals = (st.mostFrequentValues || []).slice(0, PALETTE.length);
-      renderer = {
-        type: "unique-value", field: fname, defaultSymbol: meshSym("#c8c8c8"), defaultLabel: "Otros",
-        uniqueValueInfos: vals.map((v, i) => ({ value: v.value, symbol: meshSym(PALETTE[i]), label: String(v.value) }))
-      };
-    }
-    try {
-      targets.forEach((u) => {
-        if (!origRenderers.has(u.layer)) origRenderers.set(u.layer, u.layer.renderer ? u.layer.renderer.clone() : null);
-        u.layer.renderer = renderer;
-      });
-      chartState.colored = fname;
-      if (!VOL_RX.test(fname)) renderChart();
-      toast("Modelo coloreado por " + fieldLabel(fieldMap.get(fname)));
-    } catch (e) { toast("No se pudo aplicar la simbología: " + e.message); }
-  };
-  $("#btnReset").onclick = () => {
-    units.forEach((u) => {
-      if (!origRenderers.has(u.layer)) return;
-      const r = origRenderers.get(u.layer);
-      u.layer.renderer = r ? r.clone() : null;
-      origRenderers.delete(u.layer);
+    let h = grupos.map(g => `<div class="grp"><h3><i style="background:var(${g.c.c})"></i>${g.c.n}</h3>${g.items.map(fila).join("")}</div>`).join("");
+    if(otras.length) h += `<div class="grp"><h3><i style="background:var(--c-otr)"></i>Otras capas (fuera del alcance vial)</h3>${otras.map(fila).join("")}</div>`;
+    $("capas").innerHTML = h;
+    $("capas").querySelectorAll(".sw").forEach(b => b.onclick = () => {
+      const i = S.infos[+b.dataset.i]; const v = !i.layer.visible;
+      i.userVis = v; encender(i.layer, v); b.classList.toggle("on", v);
     });
-    if (chartState) chartState.colored = null;
-    renderChart();
-  };
-
-  /* =================== fondo y transparencia =================== */
-  const bgState = { plain: false, saved: null, b: 100, o: 100, g: 100 };
-  let bgNode;
-  const orthoLayers = () => models
-    .filter((m) => IMG_TYPES.has(m.kind) || /ORTO/.test(norm(m.title)) || /ORTO/.test(norm(m.cat.title)))
-    .map((m) => m.layer);
-
-  function buildBgTool() {
-    bgNode = document.createElement("div");
-    bgNode.className = "bgtool";
-    bgNode.innerHTML = `
-      <b>Fondo y transparencia</b>
-      <label>Mapa base <span id="vB">100%</span></label><input type="range" id="rB" min="0" max="100" value="100">
-      <label>Ortofotos <span id="vO">100%</span></label><input type="range" id="rO" min="0" max="100" value="100">
-      <div class="note" id="nO"></div>
-      <label>Terreno <span id="vG">100%</span></label><input type="range" id="rG" min="0" max="100" value="100">
-      <div class="note">Con el terreno transparente puedes ver la parte enterrada del sólido.</div>
-      <button id="bgPlain">Fondo blanco</button>
-      <label style="margin-top:14px">Calidad gráfica</label>
-      <select id="qSel" style="width:100%">
-        <option value="low">Baja — más rápida</option>
-        <option value="medium">Media — equilibrada</option>
-        <option value="high">Alta — más detalle</option>
-      </select>
-      <div class="note">Al cambiarla el visor se recarga.</div>`;
-    const q = (s) => bgNode.querySelector(s);
-    q("#rB").oninput = (e) => { bgState.b = +e.target.value; applyBg(); };
-    q("#rO").oninput = (e) => { bgState.o = +e.target.value; applyBg(); };
-    q("#rG").oninput = (e) => { bgState.g = +e.target.value; applyBg(); };
-    q("#bgPlain").onclick = togglePlain;
-    q("#qSel").value = QUALITY;
-    q("#qSel").onchange = (e) => { store.set("quality", e.target.value); location.reload(); };
-    return bgNode;
+    $("capas").querySelectorAll("[data-z]").forEach(b => b.onclick = () => {
+      const i = S.infos[+b.dataset.z]; i.userVis = true; encender(i.layer, true); renderCapas();
+      const fs = (i.soloModelo ? S.modelos : S.feats).filter(F => F.info === i); const e = extentFeats(fs) || i.layer.fullExtent;
+      if(e) view.goTo({target: e, tilt: 55}, {duration: 1400}).catch(()=>{});
+    });
+    $("capas").querySelectorAll("[data-s]").forEach(b => b.onclick = () => {
+      const i = S.infos[+b.dataset.s]; if(!i.cats.length){ toast("Esta capa no forma parte de las categorías del proyecto."); return; }
+      S.cat = i.cats[0]; tab("pEl"); renderKpis(); renderBars(); renderList();
+    });
   }
+  const masivo = fn => { S.infos.forEach(i => { const v = fn(i); i.userVis = v; encender(i.layer, v); }); renderCapas(); };
+  $("cOn").onclick  = () => masivo(i => !CONFIG.CAPAS_APAGADAS.test(i.path));
+  $("cOff").onclick = () => masivo(() => false);
+  $("cM3d").onclick = () => masivo(i => esModelo(i) || i.cats.includes("prog"));
+  function tab(id){ document.querySelectorAll(".tabs button").forEach(b => b.classList.toggle("on", b.dataset.p === id)); document.querySelectorAll(".pane").forEach(p => p.classList.toggle("on", p.id === id)); }
+  document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => { tab(b.dataset.p); if(b.dataset.p === "pCa") renderCapas(); });
 
-  function refreshBgTool() {
-    if (!bgNode) return;
-    const q = (s) => bgNode.querySelector(s);
-    const n = orthoLayers().length;
-    q("#rO").disabled = !n;
-    q("#nO").textContent = n ? `${n} capa${n > 1 ? "s" : ""} de imagen u ortofoto` : "No se encontraron capas de ortofoto en la escena.";
-    q("#rB").value = bgState.b; q("#rO").value = bgState.o; q("#rG").value = bgState.g;
-    q("#vB").textContent = bgState.b + "%"; q("#vO").textContent = bgState.o + "%"; q("#vG").textContent = bgState.g + "%";
-    q("#bgPlain").textContent = bgState.plain ? "Restaurar fondo" : "Fondo blanco";
-    q("#bgPlain").classList.toggle("on", bgState.plain);
-  }
-
-  function applyBg() {
-    if (!scene) return;
-    const b = bgState.b / 100, o = bgState.o / 100, g = bgState.g / 100;
-    if (scene.basemap) {
-      scene.basemap.baseLayers.forEach((l) => (l.opacity = b));
-      scene.basemap.referenceLayers.forEach((l) => (l.opacity = b));
+  /* ---------- selección y ficha ---------- */
+  async function seleccionar(F, fly){
+    S.sel = F;
+    (S.hl || []).forEach(h => h.remove()); S.hl = [];
+    for(const X of [F, F.modelo].filter(Boolean)){
+      if(X === F.modelo && !X.info.userVis) continue;
+      encender(X.info.layer, true);
+      try{ const lv = await view.whenLayerView(X.info.layer); if(X.oids.length) S.hl.push(lv.highlight(X.oids)); }catch(e){}
     }
-    orthoLayers().forEach((l) => (l.opacity = o));
-    scene.ground.opacity = g;
-    if (g < 1) scene.ground.navigationConstraint = { type: "none" };
-    refreshBgTool();
+    if(S.cat !== F.cat){ S.cat = F.cat; renderKpis(); renderBars(); }
+    renderList();
+    document.querySelector(`.item[data-id="${F.id}"]`)?.scrollIntoView({block:"nearest"});
+    renderFicha(F);
+    if(fly) zoomA(F);
   }
-
-  function applyPlainBg() {
-    const c = theme() === "dark" ? [28, 31, 35, 1] : [255, 255, 255, 1];
-    view.environment.atmosphereEnabled = false;
-    view.environment.starsEnabled = false;
-    view.environment.background = { type: "color", color: c };
+  function zoomA(F){
+    const g = F.g.geometry;
+    if(!g){ if(F.info.layer.fullExtent) view.goTo(F.info.layer.fullExtent).catch(()=>{}); return; }
+    const tgt = g.type === "point" ? {target: g, zoom: F.cat === "pte" ? 17 : 19, tilt: 65} : {target: g.extent ? g.extent.clone().expand(2.5) : g, tilt: 60};
+    view.goTo(tgt, {duration: 1300}).catch(()=>{});
   }
-
-  function togglePlain() {
-    if (!bgState.plain) {
-      bgState.saved = {
-        b: bgState.b, o: bgState.o, g: bgState.g,
-        atm: view.environment.atmosphereEnabled, stars: view.environment.starsEnabled,
-        bg: view.environment.background ? view.environment.background.clone() : null
-      };
-      bgState.b = 0; bgState.o = 0; bgState.g = 0; bgState.plain = true;
-      applyBg(); applyPlainBg();
-    } else {
-      const s = bgState.saved || { b: 100, o: 100, g: 100, atm: true, stars: true, bg: null };
-      bgState.b = s.b; bgState.o = s.o; bgState.g = s.g; bgState.plain = false;
-      applyBg();
-      view.environment.background = s.bg;
-      view.environment.atmosphereEnabled = s.atm;
-      view.environment.starsEnabled = s.stars;
-    }
-    refreshBgTool();
+  function fmtVal(v, f){
+    if(v == null || v === "") return "<span style='color:var(--faint)'>—</span>";
+    if(f?.type === "date"){ const d = new Date(v); if(!isNaN(d)) return d.toLocaleDateString("es-PE"); }
+    if(typeof v === "number") return Number.isInteger(v) ? v.toLocaleString("es-PE") : v.toLocaleString("es-PE",{maximumFractionDigits:3});
+    return esc(v);
   }
-
-  /* =================== cabecera =================== */
-  $("#btnLink").onclick = () => {
-    const u = new URL(location.href);
-    if (active) u.searchParams.set("layer", active.title); else u.searchParams.delete("layer");
-    const oid = selKey ? selKey.split(":")[1] : null;
-    if (oid) u.searchParams.set("oid", oid); else u.searchParams.delete("oid");
-    (navigator.clipboard ? navigator.clipboard.writeText(u.href) : Promise.reject()).then(() => toast("Enlace copiado."), () => toast(u.href));
-  };
-  $("#btnOut").onclick = () => { IdentityManager.destroyCredentials(); location.reload(); };
-
-  start();
-});
-</script>
-<script>
-  /* Oculta el ID del ítem, por ejemplo "(4b6ffabf…)", en el cuadro de inicio de sesión de ArcGIS */
-  (function () {
-    var RX = /\s*\(([0-9a-f]{32})\)/gi;
-    function clean(root) {
-      var w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), n;
-      while ((n = w.nextNode())) { if (RX.test(n.nodeValue)) { RX.lastIndex = 0; n.nodeValue = n.nodeValue.replace(RX, ""); } RX.lastIndex = 0; }
-    }
-    new MutationObserver(function (muts) {
-      muts.forEach(function (m) {
-        if (m.type === "characterData") clean(m.target.parentNode || m.target);
-        m.addedNodes && m.addedNodes.forEach(function (x) { if (x.nodeType === 1 || x.nodeType === 3) clean(x.nodeType === 3 ? x.parentNode : x); });
+  function renderFicha(F){
+    const c = catN(F.cat);
+    $("fCat").querySelector("i").style.background = `var(${c.c})`;
+    $("fCat").querySelector("span").textContent = c.n.replace(/s$/,"") + " · " + F.info.title;
+    $("fNom").textContent = F.nombre;
+    const tr = F.tramos.length === 1 ? "Tramo " + F.tramos[0] : F.tramos.length ? "Tramos " + F.tramos[0] + "–" + F.tramos.at(-1) : "Tramo s/d";
+    $("fLoc").textContent = tr + (F.prog != null ? "  ·  Km " + (F.progAprox?"≈ ":"") + fmtProg(F.prog) : "");
+    const rows = Object.entries(F.a).filter(([k]) => !SKIP_RE.test(k)).map(([k,v]) => {
+      const f = F.info.fields.find(x => x.name === k);
+      return `<tr><td>${esc(f?.alias || k)}</td><td>${fmtVal(v, f)}</td></tr>`;
+    });
+    if(F.modelo){
+      const M = F.modelo;
+      rows.push(`<tr><td colspan="2" style="color:var(--c-pte);font-size:11px;letter-spacing:.6px;text-transform:uppercase;padding-top:12px">Modelo 3D vinculado · ${esc(M.info.title)}</td></tr>`);
+      Object.entries(M.a).filter(([k]) => !SKIP_RE.test(k)).forEach(([k,v]) => {
+        const f = M.info.fields.find(x => x.name === k);
+        rows.push(`<tr><td>${esc(f?.alias || k)}</td><td>${fmtVal(v, f)}</td></tr>`);
       });
-    }).observe(document.body, { childList: true, subtree: true, characterData: true });
-  })();
+    } else if(["alc","pte"].includes(F.cat) && S.modelos.length){
+      rows.push(`<tr><td colspan="2" style="color:var(--faint);padding-top:10px">Sin modelo 3D a menos de ${CONFIG.VINCULO_M} m.</td></tr>`);
+    }
+    $("fTab").innerHTML = rows.join("") || "<tr><td colspan=2>Sin atributos</td></tr>";
+    $("ficha").classList.add("show");
+  }
+  $("fX").onclick = () => { $("ficha").classList.remove("show"); (S.hl || []).forEach(h => h.remove()); S.hl = []; S.sel = null; renderList(); };
+  $("fZoom").onclick = () => S.sel && zoomA(S.sel);
+  $("fCopy").onclick = () => {
+    if(!S.sel) return;
+    const txt = [S.sel.nombre, $("fLoc").textContent, ...[...$("fTab").rows].map(r => r.cells[0].innerText + "\t" + (r.cells[1]?.innerText||""))].join("\n");
+    navigator.clipboard?.writeText(txt); $("fCopy").textContent = "Copiado"; setTimeout(() => $("fCopy").textContent = "Copiar parámetros", 1200);
+  };
+
+  view.on("click", async ev => {
+    const r = await view.hitTest(ev);
+    for(const h of r.results){
+      const g = h.graphic; if(!g?.layer) continue;
+      const info = S.infos.find(i => i.layer === g.layer || i.layer.associatedLayer === g.layer);
+      if(!info || !info.cats.length) continue;
+      const oidHit = g.attributes?.[info.oidField] ?? g.getObjectId?.();
+      if(info.soloModelo){
+        const M = S.modelos.find(M => M.info === info && M.oids.includes(oidHit));
+        if(M?.vinculado){ seleccionar(M.vinculado, false); return; }
+        continue;
+      }
+      let F = S.feats.find(F => F.info === info && oidHit != null && F.oids.includes(oidHit));
+      if(!F){ F = agregar(info, g); if(F){ asignarEspacial([F]); recalcular(); renderKpis(); } }
+      if(F){ seleccionar(F, false); return; }
+    }
+  });
+
+  /* ---------- búsqueda ---------- */
+  function buscar(){
+    const q = $("q").value.trim(); if(!q) return;
+    const esProg = /^\s*(km)?\s*\d+\s*\+\s*\d+/i.test(q);
+    const pv = esProg ? parseProg(q) : null;
+    if(pv != null && S.progPts.length){
+      const cand = S.progPts.filter(enTramo);
+      const P = (cand.length ? cand : S.progPts).reduce((a,b) => Math.abs(b.prog-pv) < Math.abs(a.prog-pv) ? b : a);
+      $("qHint").textContent = `Progresiva más cercana: ${fmtProg(P.prog)} (Tramo ${P.tramos.join(", ")})`;
+      seleccionar(P, true); return;
+    }
+    const ql = q.toLowerCase();
+    const hits = S.feats.filter(F => String(F.nombre).toLowerCase().includes(ql) || Object.values(F.a).some(v => v != null && String(v).toLowerCase().includes(ql)));
+    $("qHint").textContent = hits.length ? `${hits.length} coincidencia(s). Mostrando la primera.` : (esProg ? "No hay capa de progresivas legible; prueba con texto." : "Sin coincidencias.");
+    if(hits.length){ if(!enTramo(hits[0])){ S.tramo = "ALL"; renderAll(); aplicarFiltro(); } seleccionar(hits[0], true); }
+  }
+  $("qGo").onclick = buscar;
+  $("q").addEventListener("keydown", e => { if(e.key === "Enter") buscar(); });
+
+  /* ---------- ambiente ---------- */
+  function initAmbiente(){
+    const fechaHora = h => { const d = new Date(), H = Math.floor(h), M = Math.round((h-H)*60);
+      return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), H - CONFIG.TIMEZONE_OFFSET, M)); };
+    const hhmm = h => String(Math.floor(h)).padStart(2,"0") + ":" + String(Math.round((h%1)*60)).padStart(2,"0");
+    const setHora = h => {
+      $("hora").value = h; $("horaO").textContent = hhmm(h); $("ambT").textContent = hhmm(h);
+      view.environment.lighting = { type:"sun", date:fechaHora(h), directShadowsEnabled:$("sombras").classList.contains("on"), displayUTCOffset:CONFIG.TIMEZONE_OFFSET };
+      const m = h >= 6.5 && h < 16 ? "dia" : h >= 16 && h < 18.75 ? "tarde" : "noche";
+      $("seg").querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.m === m));
+    };
+    const presets = {dia:12, tarde:17.5, noche:21};
+    $("seg").querySelectorAll("button").forEach(b => b.onclick = () => setHora(presets[b.dataset.m]));
+    $("hora").oninput = e => setHora(+e.target.value);
+    $("sombras").onclick = e => { e.currentTarget.classList.toggle("on"); setHora(+$("hora").value); };
+    setHora(12);
+    const rasters = () => [ ...(scene.basemap ? scene.basemap.baseLayers.toArray() : []),
+      ...scene.allLayers.filter(l => ["imagery","imagery-tile","tile","web-tile","wmts","wms"].includes(l.type) || /ORTO|DRON|IMAGEN|MOSAIC|RASTER/i.test(l.title||"")).toArray() ];
+    $("orto").oninput = e => { const v = +e.target.value; $("ortoO").textContent = v + "%"; rasters().forEach(l => l.opacity = v/100); };
+    $("terr").oninput = e => { const v = +e.target.value; $("terrO").textContent = v + "%";
+      scene.ground.opacity = v/100; scene.ground.navigationConstraint = { type: v < 100 ? "none" : S.orig.nav }; };
+    $("mod").oninput = e => { const v = +e.target.value; $("modO").textContent = v + "%";
+      scene.allLayers.forEach(l => { if(["scene","building-scene","integrated-mesh"].includes(l.type)) l.opacity = v/100; }); };
+    $("blanco").onclick = e => {
+      const on = !e.currentTarget.classList.contains("on"); e.currentTarget.classList.toggle("on", on);
+      if(on){ scene.basemap = null; scene.ground.surfaceColor = "#ffffff";
+        view.environment.background = { type:"color", color:[255,255,255,1] };
+        view.environment.atmosphereEnabled = false; view.environment.starsEnabled = false; }
+      else { scene.basemap = S.orig.basemap; scene.ground.surfaceColor = S.orig.ground; view.environment.background = S.orig.bg;
+        view.environment.atmosphereEnabled = true; view.environment.starsEnabled = true; $("orto").dispatchEvent(new Event("input")); }
+    };
+    $("ambH").onclick = () => $("amb").classList.toggle("min");
+  }
+
+  /* =================== RECORRIDO VIRTUAL =================== */
+  const R = { abierto:false, rutas:[], ruta:null, s:0, v:60, playing:false, modo:"persecucion", alt:0,
+              gl:null, car:null, mark:null, sym:null, carHead:null, camH:null, camT:null, last:0, hud:0, listo:false };
+
+  async function initRecorrido(){
+    if(R.listo) return;
+    R.gl = new GraphicsLayer({ title:"Recorrido virtual", listMode:"hide", elevationInfo:{ mode:"relative-to-scene" } });
+    scene.add(R.gl);
+    R.sym = { type:"point-3d", symbolLayers:[{ type:"object", resource:{ primitive:"cube" }, width:2.2, depth:4.8, height:1.7,
+              anchor:"bottom", material:{ color:"#f2b134" } }] };
+    for(const name of CONFIG.VEHICULO_MODELOS){
+      try{ R.sym = await new WebStyleSymbol({ styleName:"EsriRealisticTransportationStyle", name }).fetchSymbol(); break; }catch(e){}
+    }
+    R.car = new Graphic({ symbol: R.sym });
+    R.mark = new Graphic({ symbol:{ type:"point-3d", symbolLayers:[{ type:"icon", resource:{ primitive:"circle" }, size:14,
+              material:{ color:"#f2b134" }, outline:{ color:"#ffffff", size:2 } }] } });
+    R.gl.addMany([R.car, R.mark]);
+    await construirRutas();
+    R.listo = true;
+  }
+
+  /* ---- rutas: capas de eje + progresivas de cada tramo ---- */
+  function unirPaths(paths){
+    const d2 = (a,b) => (a[0]-b[0])**2 + (a[1]-b[1])**2;
+    const rest = paths.map(p => p.slice()); let out = rest.shift();
+    while(rest.length){
+      const e = out[out.length-1], b0 = out[0]; let bi = 0, modo = 0, bd = Infinity;
+      rest.forEach((p,i) => {
+        const c = [d2(e,p[0]), d2(e,p.at(-1)), d2(b0,p.at(-1)), d2(b0,p[0])];
+        c.forEach((d,m) => { if(d < bd){ bd = d; bi = i; modo = m; } });
+      });
+      let p = rest.splice(bi,1)[0];
+      if(modo === 0) out = out.concat(p);
+      else if(modo === 1) out = out.concat(p.reverse());
+      else if(modo === 2) out = p.concat(out);
+      else out = p.reverse().concat(out);
+    }
+    return out;
+  }
+
+  async function construirRutas(){
+    R.rutas = [];
+    const ejes = S.infos.filter(i => CONFIG.CAPAS_EJE.test(i.path));
+    for(const info of ejes){
+      try{
+        const L = info.layer; await L.load();
+        if(L.type !== "feature" || L.geometryType !== "polyline") continue;
+        const q = L.createQuery(); q.where = "1=1"; q.outFields = ["*"]; q.returnGeometry = true; q.returnZ = true;
+        q.outSpatialReference = view.spatialReference;
+        const r = await L.queryFeatures(q);
+        const fNom = L.fields.find(f => f.type === "string" && /NOMBRE|NAME|EJE|ALINE|DESCR|TRAMO/i.test(f.name))?.name;
+        r.features.forEach((g, k) => {
+          const paths = g.geometry?.paths; if(!paths?.length) return;
+          let tr = info.tTit.length === 1 ? info.tTit[0] : null;
+          for(const v of Object.values(g.attributes || {})){ const t = tramoEnTexto(v); if(t){ tr = t; break; } }
+          const nom = (fNom && g.attributes[fNom]) || (info.title + (r.features.length > 1 ? " · " + (k+1) : ""));
+          R.rutas.push({ id:"e"+R.rutas.length, tipo:"eje", nombre:String(nom), tramo:tr, raw:unirPaths(paths), hasZ:!!g.geometry.hasZ });
+        });
+      }catch(e){ console.warn("Eje", info.title, e); }
+    }
+    for(const t of S.tramos){
+      const ps = S.progPts.filter(P => P.tramos.length === 1 && P.tramos[0] === t && P.pt).sort((a,b) => a.prog - b.prog);
+      const vistos = new Set(), pts = [];
+      for(const P of ps){
+        const k = Math.round(P.prog * 10); if(vistos.has(k)) continue; vistos.add(k);
+        const g = P.g.geometry; pts.push([P.pt.x, P.pt.y, g?.type === "point" ? (g.z || 0) : 0]);
+      }
+      if(pts.length >= 3) R.rutas.push({ id:"p"+t, tipo:"prog", nombre:`Tramo ${t} · por progresivas`, tramo:t, raw:pts,
+                                        hasZ: ps.some(P => P.g.geometry?.hasZ) });
+    }
+    const sel = $("recRuta");
+    const grp = (tit, arr) => arr.length ? `<optgroup label="${tit}">${arr.map(r => `<option value="${r.id}">${esc(r.nombre)}${r.tramo && r.tipo==="eje" ? " · T" + r.tramo : ""}</option>`).join("")}</optgroup>` : "";
+    sel.innerHTML = grp("Ejes de diseño", R.rutas.filter(r => r.tipo === "eje")) + grp("Por progresivas", R.rutas.filter(r => r.tipo === "prog"))
+                  || `<option value="">Sin ejes ni progresivas</option>`;
+  }
+
+  function catmull(P, k){
+    const out = [P[0]];
+    const tj = (a,b) => Math.sqrt(Math.hypot(b[0]-a[0], b[1]-a[1]) || 1e-6);
+    for(let i = 0; i < P.length-1; i++){
+      const p0 = P[i-1] || P[i], p1 = P[i], p2 = P[i+1], p3 = P[i+2] || P[i+1];
+      const m = Math.max(1, Math.ceil(Math.hypot(p2[0]-p1[0], p2[1]-p1[1]) * k / 2));
+      const t0 = 0, t1 = t0 + tj(p0,p1), t2 = t1 + tj(p1,p2), t3 = t2 + tj(p2,p3);
+      for(let j = 1; j <= m; j++){
+        const t = t1 + (t2-t1) * j / m;
+        out.push([0,1,2].map(d => {
+          const A1 = (t1-t)/(t1-t0)*p0[d] + (t-t0)/(t1-t0)*p1[d];
+          const A2 = (t2-t)/(t2-t1)*p1[d] + (t-t1)/(t2-t1)*p2[d];
+          const A3 = (t3-t)/(t3-t2)*p2[d] + (t-t2)/(t3-t2)*p3[d];
+          const B1 = (t2-t)/(t2-t0)*A1 + (t-t0)/(t2-t0)*A2;
+          const B2 = (t3-t)/(t3-t1)*A2 + (t-t1)/(t3-t1)*A3;
+          return (t2-t)/(t2-t1)*B1 + (t-t1)/(t2-t1)*B2;
+        }));
+      }
+    }
+    return out;
+  }
+
+  async function prepararRuta(r){
+    if(r.X) return r;
+    const vsr = view.spatialReference, wgs = vsr.isWGS84;
+    r.wsr = wgs ? SpatialReference.WebMercator : vsr;
+    let P = r.raw.map(p => { const [x,y] = wgs ? webMercatorUtils.lngLatToXY(p[0], p[1]) : [p[0], p[1]]; return [x, y, p[2] || 0]; });
+    const midY = P[Math.floor(P.length/2)][1];
+    r.k = r.wsr.isWebMercator ? Math.cos(Math.atan(Math.sinh(midY / 6378137))) : 1;  // m reales por unidad de mapa
+    P = P.filter((p,i) => i === 0 || Math.hypot(p[0]-P[i-1][0], p[1]-P[i-1][1]) * r.k > 0.05);
+    if(P.length < 2) throw new Error("ruta sin geometría");
+    let len = 0; for(let i = 1; i < P.length; i++) len += Math.hypot(P[i][0]-P[i-1][0], P[i][1]-P[i-1][1]) * r.k;
+    if(len / (P.length-1) > 6) P = catmull(P, r.k);
+    // remuestreo uniforme
+    const c = [0]; for(let i = 1; i < P.length; i++) c.push(c[i-1] + Math.hypot(P[i][0]-P[i-1][0], P[i][1]-P[i-1][1]) * r.k);
+    const total = c.at(-1), paso = CONFIG.RECORRIDO_PASO, n = Math.floor(total / paso) + 1;
+    const X = new Float64Array(n+1), Y = new Float64Array(n+1), Z = new Float64Array(n+1);
+    let i = 0;
+    for(let j = 0; j <= n; j++){
+      const sj = Math.min(j * paso, total);
+      while(i < c.length-2 && c[i+1] < sj) i++;
+      const f = c[i+1] > c[i] ? (sj - c[i]) / (c[i+1] - c[i]) : 0;
+      X[j] = P[i][0] + (P[i+1][0]-P[i][0]) * f; Y[j] = P[i][1] + (P[i+1][1]-P[i][1]) * f; Z[j] = P[i][2] + (P[i+1][2]-P[i][2]) * f;
+    }
+    Object.assign(r, { X, Y, Z, n: n+1, total, paso });
+    // cota: z de diseño si viene en los datos; si no, terreno
+    const conZ = r.raw.filter(p => Math.abs(p[2] || 0) > 1).length;
+    r.absZ = r.hasZ && conZ > r.raw.length * 0.8;
+    if(!r.absZ){
+      const cada = 4, idx = []; for(let j = 0; j < r.n; j += cada) idx.push(j); if(idx.at(-1) !== r.n-1) idx.push(r.n-1);
+      const zs = [];
+      for(let a = 0; a < idx.length; a += 1500){
+        const sub = idx.slice(a, a+1500);
+        try{
+          const res = await scene.ground.queryElevation(new Multipoint({ points: sub.map(j => [X[j], Y[j]]), spatialReference: r.wsr }));
+          res.geometry.points.forEach(p => zs.push(p[2] || 0));
+        }catch(e){ sub.forEach(() => zs.push(0)); }
+      }
+      for(let a = 0; a < idx.length-1; a++){
+        for(let j = idx[a]; j <= idx[a+1]; j++){ const f = (j - idx[a]) / ((idx[a+1] - idx[a]) || 1); Z[j] = zs[a] + (zs[a+1] - zs[a]) * f; }
+      }
+    }
+    // suavizado vertical (±25 m)
+    const w = Math.max(1, Math.round(25 / paso)), Zs = new Float64Array(r.n);
+    for(let j = 0; j < r.n; j++){ let s = 0, m = 0; for(let q = Math.max(0, j-w); q <= Math.min(r.n-1, j+w); q++){ s += Z[q]; m++; } Zs[j] = s / m; }
+    r.Z = Zs;
+    calibrar(r);
+    return r;
+  }
+
+  // Progresivas y obras proyectadas sobre la ruta (estación en m desde el inicio)
+  function estacion(r, x, y, maxD){
+    let best = -1, bd = (maxD / r.k) ** 2;
+    for(let j = 0; j < r.n; j++){ const d = (r.X[j]-x)**2 + (r.Y[j]-y)**2; if(d < bd){ bd = d; best = j; } }
+    return best < 0 ? null : best * r.paso;
+  }
+  function aWork(r, pt){ return r.wsr === view.spatialReference || !view.spatialReference.isWGS84 ? [pt.x, pt.y] : webMercatorUtils.lngLatToXY(pt.x, pt.y); }
+  function calibrar(r){
+    const ps = S.progPts.filter(P => P.pt && (!r.tramo || P.tramos.includes(r.tramo)));
+    r.ctrl = [];
+    for(const P of ps){ const [x,y] = aWork(r, P.pt); const s = estacion(r, x, y, 40); if(s != null) r.ctrl.push({ s, prog:P.prog, tramo:P.tramos.length === 1 ? P.tramos[0] : null }); }
+    r.ctrl.sort((a,b) => a.s - b.s);
+    if(r.ctrl.length >= 2){
+      const a = r.ctrl[0], b = r.ctrl.at(-1);
+      if(b.prog < a.prog) invertir(r, true);
+      const limpio = []; for(const c of r.ctrl){ if(!limpio.length || c.prog > limpio.at(-1).prog) limpio.push(c); }
+      r.ctrl = limpio;
+    }
+    r.obras = [];
+    for(const F of S.feats){
+      if(!["alc","pte","sen","aux","acc","geo","can"].includes(F.cat) || !F.pt) continue;
+      const [x,y] = aWork(r, F.pt); const s = estacion(r, x, y, F.cat === "aux" || F.cat === "can" ? 250 : 60);
+      if(s != null) r.obras.push({ s, F });
+    }
+    r.obras.sort((a,b) => a.s - b.s);
+  }
+  function invertir(r, soloDatos){
+    for(const A of ["X","Y","Z"]) r[A] = r[A].slice().reverse();
+    const T = (r.n - 1) * r.paso;
+    (r.ctrl || []).forEach(c => c.s = T - c.s); r.ctrl?.sort((a,b) => a.s - b.s);
+    (r.obras || []).forEach(o => o.s = T - o.s); r.obras?.sort((a,b) => a.s - b.s);
+    if(!soloDatos){ R.s = Math.max(0, r.total - R.s); }
+  }
+
+  function pos(r, s){
+    s = Math.max(0, Math.min(r.total, s));
+    const f0 = s / r.paso, j = Math.min(r.n-2, Math.floor(f0)), f = f0 - j;
+    return { x: r.X[j] + (r.X[j+1]-r.X[j]) * f, y: r.Y[j] + (r.Y[j+1]-r.Y[j]) * f, z: r.Z[j] + (r.Z[j+1]-r.Z[j]) * f };
+  }
+  function rumbo(r, s, atras, adelante){
+    let a = pos(r, s - atras), b = pos(r, s + adelante);
+    if(Math.hypot(b.x-a.x, b.y-a.y) < 1e-6){ a = pos(r, r.total - 10); b = pos(r, r.total); }
+    return (Math.atan2(b.x - a.x, b.y - a.y) * 180 / Math.PI + 360) % 360;
+  }
+  const angDif = (a,b) => ((b - a + 540) % 360) - 180;
+  function progEn(r, s){
+    const C = r.ctrl; if(!C?.length) return null;
+    if(s <= C[0].s) return { prog: C[0].prog - (C[0].s - s), tramo: C[0].tramo };
+    if(s >= C.at(-1).s) return { prog: C.at(-1).prog + (s - C.at(-1).s), tramo: C.at(-1).tramo };
+    let lo = 0, hi = C.length-1; while(hi - lo > 1){ const m = (lo+hi) >> 1; if(C[m].s <= s) lo = m; else hi = m; }
+    const a = C[lo], b = C[hi], f = (s - a.s) / ((b.s - a.s) || 1);
+    return { prog: a.prog + (b.prog - a.prog) * f, tramo: (f < .5 ? a : b).tramo };
+  }
+
+  function camara(r, s, dt){
+    const p = pos(r, s), h = rumbo(r, s, 4, 8);
+    const objetivo = R.modo === "conductor" ? rumbo(r, s, 0, 35) : rumbo(r, s, 10, 40);
+    const a = dt == null ? 1 : 1 - Math.exp(-dt * (R.modo === "conductor" ? 4 : 2.2));
+    R.camH = R.camH == null || dt == null ? objetivo : (R.camH + angDif(R.camH, objetivo) * a + 360) % 360;
+    const rad = R.camH * Math.PI / 180, sx = Math.sin(rad), sy = Math.cos(rad);
+    let x, y, z, tilt, fov = 60;
+    if(R.modo === "conductor"){
+      const q = pos(r, s + 40), pend = Math.atan2(q.z - p.z, 40) * 180 / Math.PI;
+      const tObj = Math.max(70, Math.min(100, 88 + pend));
+      R.camT = R.camT == null || dt == null ? tObj : R.camT + (tObj - R.camT) * a;
+      x = p.x; y = p.y; z = p.z + 2.2 + R.alt; tilt = R.camT; fov = 75;
+    } else if(R.modo === "persecucion"){
+      const d = 20 / r.k; x = p.x - sx * d; y = p.y - sy * d; z = Math.max(p.z, pos(r, s - 20).z) + 8 + R.alt; tilt = 76;
+    } else {
+      const d = 170 / r.k; x = p.x - sx * d; y = p.y - sy * d; z = p.z + 120 + R.alt; tilt = 56;
+    }
+    return { p, h, cam: new Camera({ position: new Point({ x, y, z, spatialReference: r.wsr }), heading: R.camH, tilt, fov }) };
+  }
+
+  function dibujar(dt, moverCam = true){
+    const r = R.ruta; if(!r) return;
+    const { p, h, cam } = camara(r, R.s, dt);
+    const g = new Point({ x: p.x, y: p.y, z: r.absZ ? p.z : 0, spatialReference: r.wsr });
+    if(R.carHead == null || Math.abs(angDif(R.carHead, h)) > 0.6){
+      const sym = (R.sym.clone ? R.sym.clone() : JSON.parse(JSON.stringify(R.sym)));
+      const lyr = sym.symbolLayers.getItemAt ? sym.symbolLayers.getItemAt(0) : sym.symbolLayers[0];
+      lyr.heading = (h + CONFIG.VEHICULO_GIRO) % 360;
+      R.car.symbol = sym; R.carHead = h;
+    }
+    R.car.geometry = g; R.mark.geometry = g;
+    R.mark.visible = R.modo === "dron";
+    if(moverCam) view.camera = cam;
+    hud(false);
+    return cam;
+  }
+
+  function hud(forzar){
+    const now = performance.now(); if(!forzar && now - R.hud < 150) return; R.hud = now;
+    const r = R.ruta; if(!r) return;
+    $("recSl").value = Math.round(R.s);
+    const pr = progEn(r, R.s);
+    $("recKm").textContent = pr ? fmtProg(Math.max(0, pr.prog)) : fmtProg(R.s);
+    const tr = pr?.tramo || r.tramo;
+    const prox = r.obras.find(o => o.s > R.s + 2 && ["alc","pte","sen"].includes(o.F.cat));
+    const falta = r.total - R.s;
+    $("recInfo").innerHTML = `${tr ? `<b>Tramo ${tr}</b> · ` : ""}${pr ? "" : "dist. desde inicio · "}faltan ${falta >= 1000 ? (falta/1000).toFixed(2) + " km" : Math.round(falta) + " m"}`
+      + (prox ? ` · Próximo: <a data-f="${prox.F.id}">${esc(prox.F.nombre)}</a> en ${Math.round(prox.s - R.s)} m` : "");
+    $("recInfo").querySelector("a")?.addEventListener("click", e => { pausar(); seleccionar(S.feats[+e.target.dataset.f], false); });
+  }
+
+  function bucle(t){
+    if(!R.playing) return;
+    const dt = Math.min(0.1, (t - (R.last || t)) / 1000); R.last = t;
+    R.s += R.v / 3.6 * dt;
+    if(R.s >= R.ruta.total){ R.s = R.ruta.total; dibujar(dt); pausar(); toast("Fin del recorrido."); return; }
+    dibujar(dt);
+    requestAnimationFrame(bucle);
+  }
+  function reproducir(){
+    if(!R.ruta) return;
+    if(R.s >= R.ruta.total - 1) R.s = 0;
+    R.playing = true; R.last = 0; $("recPlay").textContent = "❚❚";
+    $("ficha").classList.remove("show");
+    requestAnimationFrame(bucle);
+  }
+  function pausar(){ R.playing = false; $("recPlay").textContent = "▶"; }
+
+  async function elegirRuta(id, volar = true){
+    const r = R.rutas.find(x => x.id === id); if(!r) return;
+    pausar();
+    $("recInfo").textContent = "Preparando trayectoria…";
+    try{ await prepararRuta(r); }catch(e){ toast("No se pudo preparar la ruta: " + e.message); return; }
+    if(r.total < 20){ toast("La ruta es demasiado corta."); return; }
+    R.ruta = r; R.s = 0; R.carHead = null; R.camH = null; R.camT = null;
+    $("recRuta").value = r.id;
+    $("recSl").max = Math.round(r.total);
+    R.gl.elevationInfo = { mode: r.absZ ? "absolute-height" : "relative-to-scene" };
+    if(volar){
+      const cam = dibujar(null, false);
+      await view.goTo(cam, { duration: 1800 }).catch(() => {});
+    } else dibujar(null);
+    hud(true);
+  }
+  function rutaDeTramo(t){
+    const n = t === "ALL" ? null : +t;
+    const r = R.rutas.find(r => r.tipo === "eje" && r.tramo === n) || R.rutas.find(r => r.tipo === "prog" && r.tramo === n) || (n == null ? R.rutas[0] : null);
+    if(r) elegirRuta(r.id); else toast(`No hay eje ni progresivas para el tramo ${t}.`);
+  }
+
+  async function abrirRecorrido(){
+    if(R.abierto){ cerrarRecorrido(); return; }
+    R.abierto = true; $("rec").classList.add("show"); document.querySelector("main").classList.add("rec-on");
+    $("btnRec").textContent = "■ Cerrar recorrido";
+    $("recInfo").textContent = "Cargando ejes y vehículo…";
+    try{ await initRecorrido(); }catch(e){ console.error(e); toast("Error al iniciar el recorrido: " + e.message); }
+    R.gl.visible = true;
+    if(!R.rutas.length){ $("recInfo").textContent = "No se encontraron capas de eje ni progresivas."; return; }
+    if(!R.ruta) rutaDeTramo(S.tramo); else { dibujar(null); }
+  }
+  function cerrarRecorrido(){
+    pausar(); R.abierto = false; $("rec").classList.remove("show"); document.querySelector("main").classList.remove("rec-on");
+    $("btnRec").textContent = "▶ Recorrido virtual";
+    if(R.gl) R.gl.visible = false;
+  }
+
+  $("btnRec").onclick = abrirRecorrido;
+  $("recX").onclick = cerrarRecorrido;
+  $("recPlay").onclick = () => R.playing ? pausar() : reproducir();
+  $("recRuta").onchange = e => elegirRuta(e.target.value);
+  $("recRev").onclick = () => { if(!R.ruta) return; invertir(R.ruta, false); R.carHead = null; R.camH = null; dibujar(null); };
+  $("recSl").oninput = e => { R.s = +e.target.value; if(!R.playing) dibujar(null); };
+  $("recModo").querySelectorAll("button").forEach(b => b.onclick = () => {
+    R.modo = b.dataset.m; R.camH = null; R.camT = null;
+    $("recModo").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+    if(!R.playing && R.ruta){ const cam = dibujar(null, false); view.goTo(cam, { duration: 900 }).catch(() => {}); }
+  });
+  $("recVel").querySelectorAll("button").forEach(b => b.onclick = () => {
+    R.v = +b.dataset.v; $("recVel").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+  });
+  $("recAlt").oninput = e => { R.alt = +e.target.value; $("recAltO").textContent = (R.alt >= 0 ? "+" : "") + R.alt + " m"; if(!R.playing && R.ruta) dibujar(null); };
+  document.addEventListener("keydown", e => {
+    if(!R.abierto || !R.ruta || /INPUT|SELECT|TEXTAREA/.test(document.activeElement?.tagName) && document.activeElement.type !== "range") return;
+    if(e.code === "Space"){ e.preventDefault(); R.playing ? pausar() : reproducir(); }
+    else if(e.code === "ArrowRight"){ R.s = Math.min(R.ruta.total, R.s + 100); if(!R.playing) dibujar(null); e.preventDefault(); }
+    else if(e.code === "ArrowLeft"){ R.s = Math.max(0, R.s - 100); if(!R.playing) dibujar(null); e.preventDefault(); }
+    else if(e.code === "ArrowUp" || e.code === "ArrowDown"){
+      const vs = [...$("recVel").querySelectorAll("button")], i = vs.findIndex(b => b.classList.contains("on"));
+      vs[Math.max(0, Math.min(vs.length-1, i + (e.code === "ArrowUp" ? 1 : -1)))].click(); e.preventDefault();
+    }
+  });
+
+  /* ---------- diagnóstico ---------- */
+  function renderDiag(){
+    $("diagBody").innerHTML = `<p style="color:var(--muted);margin-top:0">Si una capa aparece con 0 elementos o sin campo de tramo, envía una captura de esta tabla para ajustarla.</p>
+      <table><tr><th>Capa</th><th>Categoría</th><th>Tramos (título)</th><th>Elem.</th><th>Lectura</th><th>Campos tramo / prog. / nombre</th></tr>` +
+      S.infos.map(i => `<tr><td>${esc(i.path)}<br><code>${i.layer.type}</code>${i.err?`<br><span style="color:#f87171">${esc(i.err)}</span>`:""}</td>
+        <td>${i.cats.map(k => catN(k).n).join(" + ") || "—"}</td><td>${i.tTit.join(", ") || "—"}</td><td>${i.n || 0}${i.soloModelo ? `<br><code>modelo · ${i.vinc} vinculadas</code>` : ""}${i.solidos ? `<br><code>${i.solidos} sólidos</code>` : ""}</td>
+        <td><code>${esc(i.modo || "—")}</code></td>
+        <td><code>${i.fTramo || "—"} / ${i.fProg || "—"} / ${i.fNom || "—"}</code><br><code style="opacity:.7">${esc((i.fields||[]).map(f=>f.name).slice(0,25).join(", "))}</code></td></tr>`).join("") + `</table>`;
+  }
+  $("btnDiag").onclick = () => $("diag").showModal();
+});
 </script>
 </body>
 </html>
