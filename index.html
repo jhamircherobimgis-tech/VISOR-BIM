@@ -171,6 +171,75 @@
   #toast { position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%); background: #222; color: #fff; padding: 8px 14px; border-radius: 6px; font-size: 12px; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 60; max-width: 90vw; }
   #toast.on { opacity: .95; }
 
+  /* DRON-CSS:INICIO */
+  .dr-launch { display: grid; place-items: center; }
+  .dr-launch svg { width: 20px; height: 20px; }
+  .dr-launch.on { background: var(--accent); color: #fff; }
+  .dr-ui[hidden] { display: none !important; }
+  .dr-panel { position: absolute; top: 15px; left: 62px; width: 256px; max-height: calc(100% - 165px); display: flex; flex-direction: column;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 6px 24px rgba(0,0,0,.2);
+    color: var(--text); font: 12px/1.35 "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif; overflow: hidden; }
+  .dr-h { display: flex; align-items: center; gap: 6px; padding: 6px 6px 6px 10px; border-bottom: 1px solid var(--line); flex: none; }
+  .dr-h svg { width: 18px; height: 18px; color: var(--accent); flex: none; }
+  .dr-h b { font-size: 13px; }
+  .dr-h .sp { flex: 1; }
+  .dr-st { font-size: 10.5px; color: var(--muted); border: 1px solid var(--line); border-radius: 10px; padding: 0 7px; white-space: nowrap; }
+  .dr-st.live { color: #fff; background: #d9480f; border-color: #d9480f; }
+  .dr-ib { border: 0; background: transparent; color: var(--muted); width: 24px; height: 24px; border-radius: 4px; font-size: 14px; line-height: 1; padding: 0; }
+  .dr-ib:hover { background: var(--panel-2); color: var(--text); }
+  .dr-b { padding: 8px 10px 10px; overflow: auto; min-height: 0; }
+  .dr-panel.min .dr-b { display: none; }
+  .dr-seg { display: flex; background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; padding: 2px; gap: 2px; margin-bottom: 6px; }
+  .dr-seg button { flex: 1; border: 0; background: transparent; border-radius: 4px; padding: 4px 2px; color: var(--muted); font-size: 11.5px; white-space: nowrap; }
+  .dr-seg button.on { background: var(--panel); color: var(--accent); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,.14); }
+  .dr-l { display: flex; justify-content: space-between; gap: 6px; margin: 9px 0 1px; color: var(--muted); }
+  .dr-l span { color: var(--text); font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+  .dr-b input[type=range] { width: 100%; padding: 0; margin: 2px 0; border: 0; background: transparent; accent-color: var(--accent); }
+  .dr-chips, .dr-row { display: flex; gap: 4px; }
+  .dr-chips { margin-top: 2px; }
+  .dr-row { margin-top: 8px; }
+  .dr-chips button, .dr-row button { flex: 1; border: 1px solid var(--line); background: var(--panel-2); border-radius: 4px; padding: 4px; font-size: 11px; white-space: nowrap; }
+  .dr-chips button:hover, .dr-row button:hover { border-color: var(--accent); }
+  .dr-row button.pri { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .dr-row button.on { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+  .dr-row button:disabled { opacity: .45; cursor: default; }
+  #drPitchBox.dis { opacity: .45; pointer-events: none; }
+  .dr-chk { display: flex; align-items: center; gap: 6px; margin-top: 5px; color: var(--text); cursor: pointer; }
+  .dr-chk input { accent-color: var(--accent); margin: 0; }
+  .dr-note { color: var(--muted); font-size: 11px; margin-top: 6px; }
+  .dr-keys { margin-top: 10px; color: var(--muted); }
+  .dr-keys summary { cursor: pointer; color: var(--text); font-weight: 600; }
+  .dr-keys table { width: 100%; border-collapse: collapse; margin-top: 4px; font-size: 11px; }
+  .dr-keys td { padding: 3px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .dr-keys td:first-child { white-space: nowrap; padding-right: 8px; color: var(--text); }
+  .dr-keys kbd { display: inline-block; min-width: 16px; padding: 0 3px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 3px; background: var(--panel-2); font: 10px/1.4 inherit; text-align: center; }
+  .dr-hud { position: absolute; bottom: 34px; left: 50%; transform: translateX(-50%); display: flex; flex-wrap: wrap; justify-content: center;
+    background: rgba(12,16,22,.74); color: #fff; border-radius: 8px; padding: 5px 4px; font-variant-numeric: tabular-nums; pointer-events: none;
+    max-width: calc(100% - 250px); font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif; }
+  .dr-hud div { padding: 0 10px; border-left: 1px solid rgba(255,255,255,.16); text-align: center; white-space: nowrap; }
+  .dr-hud div:first-child { border-left: 0; }
+  .dr-hud span { display: block; font-size: 9.5px; letter-spacing: .08em; color: rgba(255,255,255,.62); }
+  .dr-hud b { font-size: 15px; font-weight: 600; }
+  .dr-hud small { font-size: 10px; color: rgba(255,255,255,.62); margin-left: 2px; }
+  .dr-stick { position: absolute; bottom: 40px; width: 100px; height: 100px; border-radius: 50%; background: rgba(12,16,22,.32);
+    border: 1px solid rgba(255,255,255,.5); touch-action: none; cursor: grab; box-shadow: inset 0 0 0 22px rgba(255,255,255,.05); }
+  .dr-stick::before, .dr-stick::after { content: ""; position: absolute; background: rgba(255,255,255,.28); pointer-events: none; }
+  .dr-stick::before { left: 50%; top: 12px; bottom: 12px; width: 1px; }
+  .dr-stick::after { top: 50%; left: 12px; right: 12px; height: 1px; }
+  #drStL { left: 15px; } #drStR { right: 15px; }
+  .dr-knob { position: absolute; left: 50%; top: 50%; width: 40px; height: 40px; margin: -20px 0 0 -20px; border-radius: 50%;
+    background: rgba(255,255,255,.92); box-shadow: 0 2px 6px rgba(0,0,0,.4); pointer-events: none; z-index: 1; }
+  .dr-stick span { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 3px; font-size: 10.5px; color: #fff;
+    text-shadow: 0 1px 2px rgba(0,0,0,.9); white-space: nowrap; pointer-events: none; }
+  .dr-pickmsg { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); background: var(--accent); color: #fff; padding: 6px 14px;
+    border-radius: 16px; font-size: 12px; box-shadow: 0 3px 12px rgba(0,0,0,.25); pointer-events: none; max-width: calc(100% - 360px); text-align: center; }
+  @media (max-width: 820px) {
+    .dr-panel { width: 220px; max-height: calc(100% - 175px); }
+    .dr-hud { max-width: calc(100% - 30px); bottom: 150px; }
+    .dr-pickmsg { max-width: calc(100% - 30px); top: auto; bottom: 150px; }
+  }
+  /* DRON-CSS:FIN */
+
   @media (max-width: 1150px) {
     main { grid-template-columns: 240px minmax(0,1fr) 300px; }
     #kpis { grid-template-columns: 1.6fr repeat(2, minmax(0,1fr)); }
@@ -263,9 +332,22 @@ require([
   "esri/widgets/DirectLineMeasurement3D",
   "esri/widgets/AreaMeasurement3D",
   "esri/core/reactiveUtils",
-  "esri/layers/support/FeatureFilter"
+  "esri/layers/support/FeatureFilter",
+  "esri/Graphic",
+  "esri/layers/GraphicsLayer",
+  "esri/geometry/Mesh",
+  "esri/geometry/support/MeshComponent",
+  "esri/geometry/support/MeshLocalVertexSpace",
+  "esri/geometry/support/MeshTransform",
+  "esri/geometry/Point",
+  "esri/geometry/Polyline",
+  "esri/Camera",
+  "esri/geometry/support/webMercatorUtils",
+  "esri/geometry/projection"
 ], function (OAuthInfo, IdentityManager, WebScene, SceneView, Home, Expand, Slice,
-             DirectLineMeasurement3D, AreaMeasurement3D, reactiveUtils, FeatureFilter) {
+             DirectLineMeasurement3D, AreaMeasurement3D, reactiveUtils, FeatureFilter,
+             Graphic, GraphicsLayer, Mesh, MeshComponent, MeshLocalVertexSpace, MeshTransform,
+             Point, Polyline, Camera, webMercatorUtils, projection) {
 
   /* =================== utilidades =================== */
   const $ = (s) => document.querySelector(s);
@@ -332,6 +414,7 @@ require([
   const expanded = new Set();
   const origRenderers = new Map();
   const isolated = new Map();
+  let drone = null;           // recorrido virtual con dron
 
   /* =================== tema día / noche =================== */
   const theme = () => document.documentElement.getAttribute("data-theme") || "light";
@@ -438,6 +521,10 @@ require([
     view.on("immediate-click", onViewClick);
     view.on("pointer-move", onHover);
     if (bgState.plain) applyPlainBg();
+    drone = setupDrone({
+      view, Graphic, GraphicsLayer, Mesh, MeshComponent, MeshLocalVertexSpace, MeshTransform,
+      Point, Polyline, Camera, webMercatorUtils, projection, toast, getFocusExtent
+    });
 
     try { await scene.loadAll(); } catch (e) { console.warn(e); }
     collect();
@@ -593,8 +680,34 @@ require([
     if (!isVis(n)) { setVis(n, true); renderTree(); }
     const ex = extentsOf(n);
     if (!ex.length) return toast("Esta capa no tiene extensión definida.");
+    if (drone && drone.isOn()) { drone.focusOn(unionExtent(ex)); return; }
     const target = ex.length === 1 ? ex[0].clone().expand(1.3) : ex;
     view.goTo(target).catch(() => {});
+  }
+
+  function unionExtent(list) {
+    let u = list[0];
+    for (let i = 1; i < list.length; i++) {
+      try { if (list[i].spatialReference.equals(u.spatialReference)) u = u.clone().union(list[i]); } catch (e) {}
+    }
+    return u;
+  }
+
+  /* Extensión a la que apunta el dron en modo órbita: el elemento seleccionado o, si no hay, el modelo activo */
+  async function getFocusExtent() {
+    if (selKey) {
+      const [ui, oid] = selKey.split(":").map(Number), u = units[ui];
+      if (u) {
+        try {
+          let res;
+          if (unitKind(u) === "feature") res = await u.layer.queryExtent({ objectIds: [oid] });
+          else { const lv = await lvFor(u); res = lv && await lv.queryExtent({ objectIds: [oid] }); }
+          if (res && res.extent) return res.extent;
+        } catch (e) {}
+      }
+    }
+    if (active) { const ex = extentsOf(active); if (ex.length) return unionExtent(ex); }
+    return null;
   }
 
   /* =================== activar modelo =================== */
@@ -867,6 +980,7 @@ require([
 
   let clickSeq = 0;
   async function onViewClick(e) {
+    if (drone && drone.isPicking()) return;  // el clic marca la ruta o el centro de la órbita del dron
     const seq = ++clickSeq;
     const h = await pick(e, false);
     if (seq !== clickSeq) return;            // hubo un clic más reciente
@@ -938,7 +1052,10 @@ require([
       let res;
       if (unitKind(u) === "feature") res = await u.layer.queryExtent({ objectIds: [oid] });
       else { const lv = await lvFor(u); res = await lv.queryExtent({ objectIds: [oid] }); }
-      if (res && res.extent) view.goTo(res.extent.clone().expand(2.5)).catch(() => {});
+      if (res && res.extent) {
+        if (drone && drone.isOn()) drone.focusOn(res.extent);
+        else view.goTo(res.extent.clone().expand(2.5)).catch(() => {});
+      }
     } catch (e) { toast("No se pudo ubicar el elemento en la vista."); }
   }
 
@@ -1268,6 +1385,676 @@ require([
     }
     refreshBgTool();
   }
+
+  /* ===== DRON:INICIO ===== */
+  /* Dron para recorrido virtual: modelo 3D, vuelo manual, órbita y ruta por puntos,
+     con cámara del dron (1.ª persona) o cámara de seguimiento (3.ª persona). */
+  function setupDrone(D) {
+    const { view, Graphic, GraphicsLayer, Mesh, MeshComponent, MeshLocalVertexSpace, MeshTransform,
+            Point, Polyline, Camera, webMercatorUtils, projection } = D;
+    const toast = D.toast || (() => {});
+    const sr = view.spatialReference;
+    const R2D = 180 / Math.PI, D2R = Math.PI / 180;
+    const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+    const wrap360 = (h) => ((h % 360) + 360) % 360;
+    const angDiff = (a, b) => ((b - a + 540) % 360) - 180;
+    const damp = (k, dt) => 1 - Math.exp(-k * dt);
+    const f1 = new Intl.NumberFormat("es-PE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    const f0 = new Intl.NumberFormat("es-PE", { maximumFractionDigits: 0 });
+    const CARD = ["N", "NE", "E", "SE", "S", "SO", "O", "NO"];
+    const SC = 1.6;               // escala del modelo (≈ 1,1 m de envergadura)
+    const EYE = 0.22 * SC;        // altura de la cámara sobre la base del dron
+
+    /* ---------- metros <-> unidades de la vista ---------- */
+    const isGeo = !!sr.isGeographic, isWM = !!sr.isWebMercator;
+    const mpu = (!isGeo && !isWM && sr.metersPerUnit) ? sr.metersPerUnit : 1;
+    const latOf = (y) => isGeo ? y : isWM ? Math.atan(Math.sinh(y / 6378137)) * R2D : 0;
+    function moveXY(x, y, east, north) {
+      if (isGeo) return [x + east / (111320 * Math.cos(y * D2R)), y + north / 110574];
+      if (isWM) { const k = 1 / Math.cos(latOf(y) * D2R); return [x + east * k, y + north * k]; }
+      return [x + east / mpu, y + north / mpu];
+    }
+    function metersXY(x0, y0, x1, y1) {
+      if (isGeo) { const c = Math.cos(((y0 + y1) / 2) * D2R); return [(x1 - x0) * 111320 * c, (y1 - y0) * 110574]; }
+      if (isWM) { const c = Math.cos(latOf((y0 + y1) / 2) * D2R); return [(x1 - x0) * c, (y1 - y0) * c]; }
+      return [(x1 - x0) * mpu, (y1 - y0) * mpu];
+    }
+    let lastGround = 0;
+    function groundAt(x, y) {
+      try {
+        const s = view.groundView && view.groundView.elevationSampler;
+        if (s) {
+          const p = s.queryElevation(new Point({ x, y, spatialReference: sr }));
+          if (p && isFinite(p.z) && Math.abs(p.z) < 1e5) { lastGround = p.z; return p.z; }
+        }
+      } catch (e) {}
+      return lastGround;
+    }
+    const groundSeeThrough = () => { const g = view.map && view.map.ground; return !!g && g.opacity < 1; };
+    const minAgl = () => groundSeeThrough() ? -60 : 0.5;
+
+    /* ---------- modelo 3D del dron (malla en metros, nariz hacia +Y) ---------- */
+    function buildDroneMesh() {
+      const P = [], groups = new Map();
+      const part = (verts, tris, color) => {
+        const base = P.length / 3;
+        verts.forEach((v) => P.push(v[0] * SC, v[1] * SC, v[2] * SC));
+        const k = color.join(",");
+        if (!groups.has(k)) groups.set(k, { color, faces: [] });
+        const f = groups.get(k).faces;
+        tris.forEach((t) => f.push(t[0] + base, t[1] + base, t[2] + base));
+      };
+      const BOX = [[0,2,1],[0,3,2],[4,5,6],[4,6,7],[0,1,5],[0,5,4],[2,3,7],[2,7,6],[3,0,4],[3,4,7],[1,2,6],[1,6,5]];
+      const box = (cx, cy, cz, sx, sy, sz, color, rot = 0) => {
+        const c = Math.cos(rot), s = Math.sin(rot), hx = sx / 2, hy = sy / 2, hz = sz / 2;
+        part([[-hx,-hy,-hz],[hx,-hy,-hz],[hx,hy,-hz],[-hx,hy,-hz],[-hx,-hy,hz],[hx,-hy,hz],[hx,hy,hz],[-hx,hy,hz]]
+          .map(([x, y, z]) => [cx + x * c - y * s, cy + x * s + y * c, cz + z]), BOX, color);
+      };
+      const cyl = (cx, cy, z0, r, h, color, n = 18) => {
+        const v = [], t = [];
+        for (let i = 0; i < n; i++) { const a = (i / n) * 2 * Math.PI; v.push([cx + r * Math.cos(a), cy + r * Math.sin(a), z0]); }
+        for (let i = 0; i < n; i++) { const a = (i / n) * 2 * Math.PI; v.push([cx + r * Math.cos(a), cy + r * Math.sin(a), z0 + h]); }
+        v.push([cx, cy, z0], [cx, cy, z0 + h]);
+        const cb = 2 * n, ct = 2 * n + 1;
+        for (let i = 0; i < n; i++) { const j = (i + 1) % n; t.push([i, j, n + j], [i, n + j, n + i], [ct, n + i, n + j], [cb, j, i]); }
+        part(v, t, color);
+      };
+      const WHITE = [232, 235, 239, 1], GREY = [196, 201, 209, 1], DARK = [46, 51, 58, 1], BLACK = [24, 26, 30, 1];
+      const ORANGE = [255, 122, 26, 1], GREEN = [46, 204, 113, 1], LENS = [58, 123, 213, 1], PROP = [215, 220, 228, 0.38];
+      box(0, 0, 0.12, 0.24, 0.40, 0.10, WHITE);          // cuerpo
+      box(0, 0.02, 0.185, 0.18, 0.26, 0.035, GREY);      // tapa superior
+      box(0, 0.203, 0.12, 0.16, 0.012, 0.05, ORANGE);    // franja frontal
+      box(0, -0.205, 0.13, 0.10, 0.012, 0.03, DARK);     // batería trasera
+      const T = 0.27, L = Math.hypot(T, T);
+      [[1, 1], [-1, 1], [1, -1], [-1, -1]].forEach(([sx, sy]) => {
+        const dx = sx * T, dy = sy * T, front = sy > 0;
+        box(dx / 2, dy / 2, 0.145, 0.035, L, 0.03, DARK, Math.atan2(-dx, dy));   // brazo
+        cyl(dx, dy, 0.13, 0.032, 0.06, DARK);                                    // motor
+        cyl(dx, dy, 0.19, 0.034, 0.012, front ? ORANGE : GREEN);                 // tapa (luz)
+        cyl(dx, dy, 0.205, 0.155, 0.006, PROP, 28);                              // hélice en giro
+      });
+      [-1, 1].forEach((s) => {                                                   // tren de aterrizaje
+        box(s * 0.09, 0, 0.012, 0.022, 0.30, 0.022, DARK);
+        box(s * 0.09, 0.09, 0.045, 0.02, 0.02, 0.06, DARK);
+        box(s * 0.09, -0.09, 0.045, 0.02, 0.02, 0.06, DARK);
+      });
+      box(0, 0.17, 0.05, 0.07, 0.06, 0.06, BLACK);       // gimbal
+      box(0, 0.204, 0.05, 0.036, 0.012, 0.036, LENS);    // lente
+      return {
+        position: new Float64Array(P),
+        parts: [...groups.values()].map((g) => ({
+          faces: new Uint32Array(g.faces),
+          material: { color: g.color, alphaMode: g.color[3] < 1 ? "blend" : "opaque", doubleSided: true }
+        }))
+      };
+    }
+    const DRONE = buildDroneMesh();
+    /* la posición (vertexSpace) solo se fija al crear la malla: se crea una por cuadro con los mismos arreglos */
+    const droneMeshAt = (origin, at) => new Mesh({
+      spatialReference: sr,
+      vertexSpace: new MeshLocalVertexSpace({ origin }),
+      vertexAttributes: { position: DRONE.position },
+      components: DRONE.parts.map((c) => new MeshComponent({ faces: c.faces, shading: "flat", material: c.material })),
+      transform: new MeshTransform({ rotationAxis: at.axis, rotationAngle: at.angle })
+    });
+
+    /* rumbo + cabeceo + alabeo -> eje/ángulo para MeshTransform */
+    const qMul = (a, b) => [a[0]*b[0]-a[1]*b[1]-a[2]*b[2]-a[3]*b[3], a[0]*b[1]+a[1]*b[0]+a[2]*b[3]-a[3]*b[2],
+                            a[0]*b[2]-a[1]*b[3]+a[2]*b[0]+a[3]*b[1], a[0]*b[3]+a[1]*b[2]-a[2]*b[1]+a[3]*b[0]];
+    const qAx = (x, y, z, deg) => { const h = deg * D2R / 2, s = Math.sin(h); return [Math.cos(h), x * s, y * s, z * s]; };
+    function attitude(yaw, pitch, roll) {
+      const q = qMul(qMul(qAx(0, 0, 1, yaw), qAx(1, 0, 0, pitch)), qAx(0, 1, 0, roll));
+      const w = clamp(q[0], -1, 1), s = Math.sqrt(1 - w * w);
+      if (s < 1e-6) return { axis: [0, 0, 1], angle: 0 };
+      return { axis: [q[1] / s, q[2] / s, q[3] / s], angle: 2 * Math.acos(w) * R2D };
+    }
+
+    /* ---------- estado ---------- */
+    const S = {
+      on: false, anim: false, x: 0, y: 0, z: 0, alt: 0, agl: 25, ground: 0, heading: 0, pitch: -20,
+      vF: 0, vR: 0, yawRate: 0, aF: 0, aR: 0, gs: 0, lastT: 0, hudT: 0,
+      speed: 8, dist: 9, follow: true, mode: "manual", cam: "chase", paused: false, pick: null,
+      keys: new Set(), sticks: { lx: 0, ly: 0, rx: 0, ry: 0 },
+      orbit: { x: 0, y: 0, z: 0, r: 60, ang: 0, dir: 1 },
+      route: { wps: [], path: null, len: 0, s: 0, flying: false, loop: false }
+    };
+    let raf = 0;
+
+    /* ---------- capas y gráficos ---------- */
+    const lyr = new GraphicsLayer({ title: "Dron", listMode: "hide", elevationInfo: { mode: "absolute-height" } });
+    const lyrG = new GraphicsLayer({ title: "Ruta del dron", listMode: "hide", elevationInfo: { mode: "on-the-ground" } });
+    const gDrone = new Graphic({ symbol: { type: "mesh-3d", symbolLayers: [{ type: "fill" }] } });
+    const gTether = new Graphic({ symbol: { type: "line-3d", symbolLayers: [{ type: "line", size: 1.2, material: { color: [255, 122, 26, 0.75] } }] } });
+    const gShadow = new Graphic({ symbol: { type: "point-3d", symbolLayers: [{ type: "icon", resource: { primitive: "circle" }, size: 13, material: { color: [0, 0, 0, 0.3] }, outline: { color: [255, 122, 26, 0.95], size: 1.5 } }] } });
+    const gRoute = new Graphic({ symbol: { type: "line-3d", symbolLayers: [{ type: "line", size: 3, material: { color: [255, 122, 26, 0.95] } }] } });
+    lyr.addMany([gDrone, gTether]);
+    lyrG.addMany([gRoute, gShadow]);
+    let wpGraphics = [];
+    const wpSym = (i) => ({ type: "point-3d", symbolLayers: [
+      { type: "icon", resource: { primitive: "circle" }, size: 17, material: { color: i === 0 ? [46, 160, 67, 1] : [255, 122, 26, 1] }, outline: { color: [255, 255, 255, 1], size: 1.5 } },
+      { type: "text", text: String(i + 1), size: 9, material: { color: [255, 255, 255, 1] }, font: { weight: "bold" } }
+    ] });
+
+    let lastSig = "";
+    function updateVisuals() {
+      const prec = isGeo ? 8 : 3;
+      const sig = [S.x.toFixed(prec), S.y.toFixed(prec), S.z.toFixed(3), S.heading.toFixed(2), S.aF.toFixed(2), S.aR.toFixed(2), S.cam, S.ground.toFixed(2)].join("|");
+      if (sig === lastSig) return;
+      lastSig = sig;
+      const show = S.cam !== "fpv";
+      gDrone.visible = show; gTether.visible = show; gShadow.visible = show;
+      if (!show) return;
+      const vref = Math.max(S.speed, 4);
+      const at = attitude(-S.heading, -clamp(S.aF / vref, -1, 1) * 13, clamp(S.aR / vref, -1, 1) * 13);
+      gDrone.geometry = droneMeshAt([S.x, S.y, S.z], at);
+      gTether.geometry = S.z - S.ground > 1.5
+        ? new Polyline({ paths: [[[S.x, S.y, S.ground], [S.x, S.y, S.z]]], hasZ: true, spatialReference: sr }) : null;
+      gShadow.geometry = new Point({ x: S.x, y: S.y, spatialReference: sr });
+    }
+
+    /* ---------- cámara ---------- */
+    let lastCam = null;
+    function camFor() {
+      const zEye = S.z + EYE;
+      const aboveGround = (px, py, pz) => groundSeeThrough() ? pz : Math.max(pz, groundAt(px, py) + 1.5);
+      if (S.mode === "orbit") {
+        const O = S.orbit;
+        let px = S.x, py = S.y, pz = zEye;
+        if (S.cam === "chase") {
+          const [e, n] = metersXY(O.x, O.y, S.x, S.y), h = Math.hypot(e, n) || 1;
+          [px, py] = moveXY(S.x, S.y, (e / h) * S.dist * 0.9, (n / h) * S.dist * 0.9);
+          pz = aboveGround(px, py, zEye + S.dist * 0.3);
+        }
+        const [e2, n2] = metersXY(px, py, O.x, O.y);
+        return [px, py, pz, wrap360(Math.atan2(e2, n2) * R2D), 90 + Math.atan2(O.z - pz, Math.hypot(e2, n2)) * R2D];
+      }
+      if (S.cam === "fpv") return [S.x, S.y, zEye, S.heading, 90 + S.pitch];
+      const el = clamp(12 - S.pitch, -5, 89) * D2R, back = S.dist * Math.cos(el), up = S.dist * Math.sin(el), h = S.heading * D2R;
+      const [px, py] = moveXY(S.x, S.y, -Math.sin(h) * back, -Math.cos(h) * back);
+      return [px, py, aboveGround(px, py, zEye + up), S.heading, 90 - el * R2D + 7];
+    }
+    function setCamera(c) {
+      const [px, py, pz, hd, tl] = c, tol = isGeo ? 1e-9 : 1e-4, L = lastCam;
+      if (L && Math.abs(L[0] - px) < tol && Math.abs(L[1] - py) < tol && Math.abs(L[2] - pz) < 1e-3 &&
+          Math.abs(angDiff(L[3], hd)) < 0.01 && Math.abs(L[4] - tl) < 0.01) return;
+      lastCam = c;
+      view.camera = new Camera({
+        position: new Point({ x: px, y: py, z: pz, spatialReference: sr }),
+        heading: wrap360(hd), tilt: clamp(tl, 0.5, 179.5), fov: view.camera.fov
+      });
+    }
+
+    /* ---------- altura ---------- */
+    function adjustAlt(d) {
+      if (S.follow) S.agl = clamp(S.agl + d, minAgl(), 1500);
+      else S.alt = Math.max(S.alt + d, S.ground + minAgl());
+    }
+    const targetAgl = () => S.follow ? S.agl : S.alt - S.ground;
+    function setTargetAgl(v) { if (S.follow) S.agl = v; else S.alt = S.ground + v; }
+
+    /* ---------- órbita ---------- */
+    async function toViewSR(g) {
+      if (!g || !g.spatialReference || g.spatialReference.equals(sr)) return g;
+      try { if (webMercatorUtils.canProject(g, sr)) return webMercatorUtils.project(g, sr); } catch (e) {}
+      try { await projection.load(); return projection.project(g, sr); } catch (e) { return null; }
+    }
+    function centerOfExtent(ex) {
+      const c = ex.center;
+      const z = ex.hasZ && isFinite(ex.zmin) && isFinite(ex.zmax) ? (ex.zmin + ex.zmax) / 2 : groundAt(c.x, c.y);
+      const [w, h] = metersXY(ex.xmin, ex.ymin, ex.xmax, ex.ymax);
+      return { x: c.x, y: c.y, z, diag: Math.hypot(w, h) };
+    }
+    function setOrbitCenter(c, r) {
+      const O = S.orbit;
+      O.x = c.x; O.y = c.y; O.z = isFinite(c.z) && Math.abs(c.z) < 1e5 ? c.z : groundAt(c.x, c.y);
+      const [e, n] = metersXY(O.x, O.y, S.x, S.y);
+      O.ang = wrap360(Math.atan2(e, n) * R2D);
+      O.r = clamp(r || Math.hypot(e, n), 10, 2000);
+      syncPanel();
+    }
+    async function orbitExtent(ex) {
+      ex = await toViewSR(ex);
+      if (!ex || !ex.center) return false;
+      const c = centerOfExtent(ex);
+      setOrbitCenter(c, clamp(c.diag * 0.8, 25, 1500));
+      setTargetAgl(clamp(Math.round(c.diag * 0.3), 15, 400));
+      syncPanel();
+      return true;
+    }
+    async function orbitFocus(silent) {
+      let ex = null;
+      try { ex = D.getFocusExtent ? await D.getFocusExtent() : null; } catch (e) {}
+      if (ex && await orbitExtent(ex)) return true;
+      if (!silent) toast("Selecciona un modelo o un elemento para centrar la órbita.");
+      return false;
+    }
+    function orbitAhead() {
+      const h = S.heading * D2R, [x, y] = moveXY(S.x, S.y, Math.sin(h) * 40, Math.cos(h) * 40);
+      setOrbitCenter({ x, y, z: groundAt(x, y) }, 40);
+    }
+
+    /* ---------- ruta ---------- */
+    function drawRoute() {
+      const R = S.route;
+      if (wpGraphics.length) lyrG.removeMany(wpGraphics);
+      wpGraphics = R.wps.map((w, i) => new Graphic({ geometry: new Point({ x: w.x, y: w.y, spatialReference: sr }), symbol: wpSym(i) }));
+      lyrG.addMany(wpGraphics);
+      const pts = R.wps.map((w) => [w.x, w.y]);
+      if (R.loop && R.wps.length > 2) pts.push(pts[0]);
+      gRoute.geometry = pts.length > 1 ? new Polyline({ paths: [pts], spatialReference: sr }) : null;
+    }
+    function setPath(pts) {
+      const R = S.route, path = [];
+      pts.forEach((p) => {
+        const prev = path[path.length - 1];
+        if (!prev) { path.push({ x: p.x, y: p.y, cum: 0 }); return; }
+        const [e, n] = metersXY(prev.x, prev.y, p.x, p.y), d = Math.hypot(e, n);
+        if (d > 0.5) path.push({ x: p.x, y: p.y, cum: prev.cum + d });
+      });
+      R.path = path; R.len = path.length ? path[path.length - 1].cum : 0; R.s = 0;
+    }
+    function pathAt(path, s) {
+      for (let i = 1; i < path.length; i++) {
+        if (s <= path[i].cum || i === path.length - 1) {
+          const a = path[i - 1], b = path[i], t = clamp((s - a.cum) / ((b.cum - a.cum) || 1), 0, 1);
+          const [e, n] = metersXY(a.x, a.y, b.x, b.y);
+          return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t, brg: Math.atan2(e, n) * R2D };
+        }
+      }
+      return path.length ? { x: path[0].x, y: path[0].y, brg: null } : null;
+    }
+    function startRoute() {
+      const R = S.route;
+      if (R.wps.length < 2) { toast("Marca al menos 2 puntos de ruta en el mapa."); return; }
+      setPath([{ x: S.x, y: S.y }].concat(R.wps, R.loop ? [R.wps[0]] : []));
+      R.flying = true; S.paused = false; S.pick = null;
+      syncPanel();
+    }
+
+    /* ---------- bucle de vuelo ---------- */
+    function readInput() {
+      const k = S.keys, st = S.sticks;
+      const ax = (p, n) => (k.has(p) ? 1 : 0) - (k.has(n) ? 1 : 0);
+      return {
+        fwd: clamp(ax("KeyW", "KeyS") + st.ry, -1, 1),
+        right: clamp(ax("KeyD", "KeyA") + st.rx, -1, 1),
+        up: clamp(ax("KeyR", "KeyF") + st.ly, -1, 1),
+        yaw: clamp(ax("KeyE", "KeyQ") + ax("ArrowRight", "ArrowLeft") + st.lx, -1, 1),
+        pitch: ax("ArrowUp", "ArrowDown")
+      };
+    }
+
+    function tick(t) {
+      if (!S.on) return;
+      raf = requestAnimationFrame(tick);
+      if (S.anim) return;
+      const dt = S.lastT ? clamp((t - S.lastT) / 1000, 0.001, 0.06) : 0.016;
+      S.lastT = t;
+      const inp = readInput();
+      const boost = S.keys.has("ShiftLeft") || S.keys.has("ShiftRight") ? 3 : 1;
+      const vmax = S.speed * boost;
+      if (inp.up) adjustAlt(inp.up * Math.max(2, S.speed * 0.6) * boost * dt);
+      if (inp.pitch && S.mode !== "orbit") S.pitch = clamp(S.pitch + inp.pitch * 50 * dt, -90, 30);
+
+      const x0 = S.x, y0 = S.y, R = S.route;
+      if (S.mode === "orbit") {
+        const O = S.orbit;
+        if (inp.fwd) O.r = clamp(O.r * Math.exp(-inp.fwd * 0.7 * dt), 10, 2000);
+        if (Math.abs(inp.right) > 0.5) O.dir = inp.right > 0 ? -1 : 1;
+        if (inp.yaw) O.ang = wrap360(O.ang - inp.yaw * 40 * dt);
+        if (!S.paused) O.ang = wrap360(O.ang + O.dir * (vmax / O.r) * R2D * dt);
+        const [tx, ty] = moveXY(O.x, O.y, O.r * Math.sin(O.ang * D2R), O.r * Math.cos(O.ang * D2R));
+        const far = Math.hypot(...metersXY(S.x, S.y, tx, ty));
+        const k = damp(far > 150 ? 1.3 : 3, dt);
+        S.x += (tx - S.x) * k; S.y += (ty - S.y) * k;
+        const [e, n] = metersXY(S.x, S.y, O.x, O.y);
+        S.heading = wrap360(S.heading + angDiff(S.heading, Math.atan2(e, n) * R2D) * damp(5, dt));
+        S.vF = S.vR = S.yawRate = 0;
+      } else if (S.mode === "route" && R.flying && R.path) {
+        if (!S.paused) R.s += vmax * dt;
+        if (R.s >= R.len) {
+          if (R.loop && R.wps.length > 1) setPath(R.wps.concat([R.wps[0]]));
+          else { R.flying = false; R.s = R.len; toast("Ruta completada. El dron queda en vuelo estacionario."); syncPanel(); }
+        }
+        const p = pathAt(R.path, Math.min(R.s, R.len));
+        if (p) { S.x = p.x; S.y = p.y; }
+        const la = pathAt(R.path, Math.min(R.s + Math.max(6, vmax * 1.5), R.len));
+        if (la && la.brg != null) S.heading = wrap360(S.heading + angDiff(S.heading, la.brg) * damp(2.5, dt));
+        if (inp.yaw) S.heading = wrap360(S.heading + inp.yaw * 70 * dt);
+        S.vF = S.vR = S.yawRate = 0;
+      } else {
+        S.vF += (inp.fwd * vmax - S.vF) * damp(2.5, dt);
+        S.vR += (inp.right * vmax - S.vR) * damp(2.5, dt);
+        S.yawRate += (inp.yaw * 70 - S.yawRate) * damp(6, dt);
+        S.heading = wrap360(S.heading + S.yawRate * dt);
+        const h = S.heading * D2R;
+        const e = S.vF * Math.sin(h) + S.vR * Math.cos(h), n = S.vF * Math.cos(h) - S.vR * Math.sin(h);
+        if (Math.abs(e) + Math.abs(n) > 1e-4) [S.x, S.y] = moveXY(S.x, S.y, e * dt, n * dt);
+      }
+
+      // altura: sobre el terreno (sigue el relieve) o cota fija
+      S.ground = groundAt(S.x, S.y);
+      const zMin = S.ground + minAgl();
+      const zT = Math.max(S.follow ? S.ground + S.agl : S.alt, zMin);
+      S.z += (zT - S.z) * damp(S.follow ? 3 : 4, dt);
+      if (S.z < zMin) S.z = zMin;
+
+      // velocidad real (para el HUD y la inclinación del dron)
+      const [de, dn] = metersXY(x0, y0, S.x, S.y), hr = S.heading * D2R, k2 = damp(5, dt);
+      S.aF += ((de * Math.sin(hr) + dn * Math.cos(hr)) / dt - S.aF) * k2;
+      S.aR += ((de * Math.cos(hr) - dn * Math.sin(hr)) / dt - S.aR) * k2;
+      S.gs += (Math.hypot(de, dn) / dt - S.gs) * k2;
+      if (Math.abs(S.aF) < 0.005) S.aF = 0;
+      if (Math.abs(S.aR) < 0.005) S.aR = 0;
+      if (S.gs < 0.005) S.gs = 0;
+
+      updateVisuals();
+      setCamera(camFor());
+      if (t - S.hudT > 120) { S.hudT = t; hud(); syncPanel(true); }
+    }
+
+    /* ---------- interfaz ---------- */
+    const ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="5" cy="5" r="2.6"/><circle cx="19" cy="5" r="2.6"/><circle cx="5" cy="19" r="2.6"/><circle cx="19" cy="19" r="2.6"/><path d="M7 7l3 3M17 7l-3 3M7 17l3-3M17 17l-3-3"/><rect x="9.5" y="9.5" width="5" height="5" rx="1.2"/></svg>';
+    const el = (html) => { const d = document.createElement("div"); d.innerHTML = html.trim(); return d.firstChild; };
+    const ui = {};
+    ui.launch = el(`<div class="esri-widget--button esri-widget dr-launch" role="button" tabindex="0" title="Dron: recorrido virtual">${ICON}</div>`);
+    ui.panel = el(`
+      <div class="dr-panel dr-ui" hidden>
+        <div class="dr-h">${ICON}<b>Dron</b><span class="dr-st" id="drSt">Manual</span><span class="sp"></span>
+          <button class="dr-ib" data-a="min" title="Minimizar panel">–</button>
+          <button class="dr-ib" data-a="exit" title="Aterrizar y salir del modo dron">✕</button>
+        </div>
+        <div class="dr-b">
+          <div class="dr-seg" data-g="mode"><button data-v="manual">Manual</button><button data-v="orbit">Órbita</button><button data-v="route">Ruta</button></div>
+          <div class="dr-seg" data-g="cam"><button data-v="fpv" title="Ver desde la cámara del dron (1)">Cámara del dron</button><button data-v="chase" title="Ver el dron desde atrás (2)">Seguir dron</button></div>
+          <div id="drPitchBox">
+            <label class="dr-l">Ángulo de cámara <span id="drPitchV"></span></label>
+            <input type="range" id="drPitch" min="-90" max="30" step="1">
+            <div class="dr-chips"><button data-p="0">0°</button><button data-p="-30">−30°</button><button data-p="-60">−60°</button><button data-p="-90">Cenital</button></div>
+          </div>
+          <label class="dr-l">Altura sobre el terreno <span id="drAltV"></span></label>
+          <input type="range" id="drAlt" min="1" max="500" step="1">
+          <label class="dr-chk"><input type="checkbox" id="drFollow"> Seguir el relieve</label>
+          <label class="dr-l">Velocidad <span id="drSpdV"></span></label>
+          <input type="range" id="drSpd" min="1" max="30" step="0.5">
+          <div id="drDistBox">
+            <label class="dr-l">Distancia de seguimiento <span id="drDistV"></span></label>
+            <input type="range" id="drDist" min="3" max="80" step="0.5">
+          </div>
+          <div id="drOrbitBox">
+            <label class="dr-l">Radio de órbita <span id="drRadV"></span></label>
+            <input type="range" id="drRad" min="10" max="1500" step="1">
+            <div class="dr-row"><button data-a="center" title="Orbitar el elemento seleccionado o el modelo activo">Centrar en modelo</button><button data-a="pickc" id="drPickC">Elegir centro</button></div>
+            <div class="dr-row"><button data-a="dir" id="drDir"></button><button data-a="pause" id="drPause"></button></div>
+          </div>
+          <div id="drRouteBox">
+            <div class="dr-row"><button data-a="draw" id="drDraw">Trazar ruta</button><button data-a="fly" id="drFly" class="pri">Volar ruta</button><button data-a="clear">Borrar</button></div>
+            <label class="dr-chk"><input type="checkbox" id="drLoop"> Repetir en bucle</label>
+            <div class="dr-note" id="drRouteNote"></div>
+          </div>
+          <div class="dr-row"><button data-a="full" id="drFull">⛶ Pantalla completa</button><button data-a="exit">Aterrizar</button></div>
+          <details class="dr-keys"><summary>Controles</summary>
+            <table>
+              <tr><td><kbd>W</kbd> <kbd>S</kbd></td><td>Avanzar / retroceder · en órbita: acercar / alejar</td></tr>
+              <tr><td><kbd>A</kbd> <kbd>D</kbd></td><td>Desplazar a los lados · en órbita: sentido de giro</td></tr>
+              <tr><td><kbd>Q</kbd> <kbd>E</kbd> <kbd>←</kbd> <kbd>→</kbd></td><td>Girar el dron</td></tr>
+              <tr><td><kbd>R</kbd> <kbd>F</kbd></td><td>Subir / bajar</td></tr>
+              <tr><td><kbd>↑</kbd> <kbd>↓</kbd></td><td>Inclinar la cámara</td></tr>
+              <tr><td><kbd>Shift</kbd></td><td>Turbo (×3)</td></tr>
+              <tr><td><kbd>1</kbd> <kbd>2</kbd></td><td>Cámara del dron / seguir dron</td></tr>
+              <tr><td><kbd>Espacio</kbd></td><td>Pausar órbita o ruta</td></tr>
+              <tr><td>Arrastrar</td><td>Mirar alrededor (rumbo y ángulo)</td></tr>
+              <tr><td>Rueda</td><td>Acercar / alejar la cámara o la órbita</td></tr>
+              <tr><td>Joysticks</td><td>Izq.: altura y giro · Der.: avance y lateral</td></tr>
+            </table>
+          </details>
+        </div>
+      </div>`);
+    ui.hud = el(`
+      <div class="dr-hud dr-ui" hidden>
+        <div><span>ALTURA</span><b id="hAlt">—</b><small>m</small></div>
+        <div><span>COTA</span><b id="hZ">—</b><small>msnm</small></div>
+        <div><span>VELOC.</span><b id="hSpd">—</b><small>m/s</small></div>
+        <div><span>RUMBO</span><b id="hHdg">—</b></div>
+        <div><span>CÁMARA</span><b id="hCam">—</b></div>
+      </div>`);
+    ui.stL = el(`<div class="dr-stick dr-ui" id="drStL" hidden><div class="dr-knob"></div><span>Altura · Giro</span></div>`);
+    ui.stR = el(`<div class="dr-stick dr-ui" id="drStR" hidden><div class="dr-knob"></div><span>Avance · Lateral</span></div>`);
+    ui.pick = el(`<div class="dr-pickmsg dr-ui" hidden></div>`);
+    view.ui.add(ui.launch, "top-left");
+    [ui.panel, ui.hud, ui.stL, ui.stR, ui.pick].forEach((e) => view.ui.add(e, "manual"));
+    const q = (s) => ui.panel.querySelector(s), qa = (s) => ui.panel.querySelectorAll(s);
+    const hq = (s) => ui.hud.querySelector(s);
+
+    function hud() {
+      const agl = S.z - S.ground;
+      hq("#hAlt").textContent = f1.format(agl);
+      hq("#hZ").textContent = f1.format(S.z);
+      hq("#hSpd").textContent = f1.format(S.gs);
+      const h = Math.round(S.heading) % 360;
+      hq("#hHdg").textContent = h + "° " + CARD[Math.round(h / 45) % 8];
+      hq("#hCam").textContent = S.mode === "orbit" ? "al centro" : (S.pitch > 0 ? "+" : "") + Math.round(S.pitch) + "°";
+    }
+
+    const notActive = (inp) => !inp.matches(":active");
+    function syncPanel(light) {
+      ui.launch.classList.toggle("on", S.on);
+      if (!light) [ui.panel, ui.hud, ui.stL, ui.stR].forEach((e) => (e.hidden = !S.on));
+      ui.pick.hidden = !(S.on && S.pick);
+      if (S.pick) ui.pick.textContent = S.pick === "route"
+        ? `Haz clic en el mapa para añadir puntos de ruta (${S.route.wps.length}) · Esc o «Listo» para terminar`
+        : "Haz clic en el mapa o en el modelo para fijar el centro de la órbita · Esc para cancelar";
+      if (!S.on) return;
+      const R = S.route, flying = S.mode === "route" && R.flying;
+      q("#drSt").textContent = S.mode === "orbit" ? (S.paused ? "Órbita · pausa" : "Órbita")
+        : S.mode === "route" ? (flying ? (S.paused ? "Ruta · pausa" : "En ruta") : "Ruta") : "Manual";
+      q("#drSt").classList.toggle("live", (S.mode === "orbit" || flying) && !S.paused);
+      qa('[data-g="mode"] button').forEach((b) => b.classList.toggle("on", b.dataset.v === S.mode));
+      qa('[data-g="cam"] button').forEach((b) => b.classList.toggle("on", b.dataset.v === S.cam));
+      q("#drPitchBox").classList.toggle("dis", S.mode === "orbit");
+      const pi = q("#drPitch"); if (notActive(pi)) pi.value = Math.round(S.pitch);
+      q("#drPitchV").textContent = S.mode === "orbit" ? "auto (al centro)" : (S.pitch > 0 ? "+" : "") + Math.round(S.pitch) + "°";
+      const ta = targetAgl(), ai = q("#drAlt"); if (notActive(ai)) ai.value = Math.round(clamp(ta, 1, 500));
+      q("#drAltV").textContent = f0.format(Math.round(ta)) + " m";
+      q("#drFollow").checked = S.follow;
+      const si = q("#drSpd"); if (notActive(si)) si.value = S.speed;
+      q("#drSpdV").textContent = f1.format(S.speed) + " m/s · " + f0.format(S.speed * 3.6) + " km/h";
+      q("#drDistBox").hidden = S.cam !== "chase";
+      const di = q("#drDist"); if (notActive(di)) di.value = S.dist;
+      q("#drDistV").textContent = f1.format(S.dist) + " m";
+      q("#drOrbitBox").hidden = S.mode !== "orbit";
+      const ri = q("#drRad"); if (notActive(ri)) ri.value = Math.round(S.orbit.r);
+      q("#drRadV").textContent = f0.format(Math.round(S.orbit.r)) + " m";
+      q("#drDir").textContent = S.orbit.dir > 0 ? "↻ Horario" : "↺ Antihorario";
+      q("#drPause").textContent = S.paused ? "▶ Reanudar" : "❚❚ Pausa";
+      q("#drPickC").classList.toggle("on", S.pick === "center");
+      q("#drRouteBox").hidden = S.mode !== "route";
+      q("#drDraw").textContent = S.pick === "route" ? "✓ Listo" : "Trazar ruta";
+      q("#drDraw").classList.toggle("on", S.pick === "route");
+      q("#drFly").textContent = flying ? (S.paused ? "▶ Reanudar" : "❚❚ Pausa") : "▶ Volar ruta";
+      q("#drFly").disabled = !flying && R.wps.length < 2;
+      q("#drLoop").checked = R.loop;
+      let len = 0;
+      for (let i = 1; i < R.wps.length; i++) len += Math.hypot(...metersXY(R.wps[i - 1].x, R.wps[i - 1].y, R.wps[i].x, R.wps[i].y));
+      q("#drRouteNote").textContent = R.wps.length
+        ? `${R.wps.length} punto${R.wps.length > 1 ? "s" : ""} · ${f0.format(len)} m` + (flying ? ` · avance ${f0.format(R.len ? (R.s / R.len) * 100 : 0)} %` : "")
+        : "Pulsa «Trazar ruta» y haz clic en el mapa para marcar los puntos por donde pasará el dron.";
+      const fs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+      q("#drFull").textContent = fs ? "⛶ Salir de pantalla completa" : "⛶ Pantalla completa";
+    }
+
+    function setMode(m) {
+      if (m === S.mode) return;
+      S.mode = m; S.paused = false; S.pick = null;
+      if (m !== "route") S.route.flying = false;
+      if (m === "orbit") orbitFocus(true).then((ok) => { if (!ok) orbitAhead(); });
+      if (m === "route" && !S.route.wps.length) S.pick = "route";
+      syncPanel();
+    }
+    function setCam(c) { S.cam = c; lastSig = ""; lastCam = null; syncPanel(); }
+
+    ui.launch.addEventListener("click", () => (S.on ? exit() : enter()));
+    ui.launch.addEventListener("keydown", (e) => { if (e.key === "Enter") S.on ? exit() : enter(); });
+    ui.panel.addEventListener("click", (e) => {
+      const b = e.target.closest("button");
+      if (!b) return;
+      if (b.dataset.v) { b.parentElement.dataset.g === "mode" ? setMode(b.dataset.v) : setCam(b.dataset.v); return; }
+      if (b.dataset.p) { S.pitch = +b.dataset.p; syncPanel(); return; }
+      const R = S.route;
+      switch (b.dataset.a) {
+        case "min": ui.panel.classList.toggle("min"); b.textContent = ui.panel.classList.contains("min") ? "+" : "–"; break;
+        case "exit": exit(); break;
+        case "center": orbitFocus(false); break;
+        case "pickc": S.pick = S.pick === "center" ? null : "center"; break;
+        case "dir": S.orbit.dir *= -1; break;
+        case "pause": S.paused = !S.paused; break;
+        case "draw": S.pick = S.pick === "route" ? null : "route"; if (S.pick) R.flying = false; break;
+        case "fly": if (R.flying) S.paused = !S.paused; else startRoute(); break;
+        case "clear": R.wps = []; R.flying = false; R.path = null; drawRoute(); break;
+        case "full": toggleFull(); break;
+      }
+      syncPanel();
+    });
+    q("#drPitch").addEventListener("input", (e) => { S.pitch = +e.target.value; syncPanel(true); });
+    q("#drAlt").addEventListener("input", (e) => { setTargetAgl(+e.target.value); syncPanel(true); });
+    q("#drSpd").addEventListener("input", (e) => { S.speed = +e.target.value; syncPanel(true); });
+    q("#drDist").addEventListener("input", (e) => { S.dist = +e.target.value; lastCam = null; syncPanel(true); });
+    q("#drRad").addEventListener("input", (e) => { S.orbit.r = +e.target.value; syncPanel(true); });
+    q("#drFollow").addEventListener("change", (e) => {
+      S.follow = e.target.checked;
+      if (S.follow) S.agl = clamp(S.z - S.ground, minAgl(), 1500); else S.alt = S.z;
+      syncPanel();
+    });
+    q("#drLoop").addEventListener("change", (e) => { S.route.loop = e.target.checked; drawRoute(); syncPanel(); });
+
+    function toggleFull() {
+      const box = view.container.closest(".card") || view.container;
+      if (document.fullscreenElement || document.webkitFullscreenElement) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+      else { const f = box.requestFullscreen || box.webkitRequestFullscreen; if (f) f.call(box); }
+    }
+    document.addEventListener("fullscreenchange", () => syncPanel());
+
+    /* joysticks virtuales (ratón o pantalla táctil) */
+    function stick(elm, cb) {
+      const knob = elm.querySelector(".dr-knob");
+      let id = null;
+      const shape = (v) => { const a = Math.abs(v); if (a < 0.1) return 0; const u = (a - 0.1) / 0.9; return Math.sign(v) * (0.45 * u + 0.55 * u * u); };
+      const upd = (e) => {
+        const r = elm.getBoundingClientRect(), R = r.width / 2, lim = R - 16;
+        let dx = e.clientX - (r.left + R), dy = e.clientY - (r.top + R);
+        const m = Math.hypot(dx, dy); if (m > lim) { dx *= lim / m; dy *= lim / m; }
+        knob.style.transform = `translate(${dx}px,${dy}px)`;
+        cb(shape(dx / lim), shape(-dy / lim));
+      };
+      elm.addEventListener("pointerdown", (e) => { id = e.pointerId; elm.setPointerCapture(id); upd(e); e.preventDefault(); });
+      elm.addEventListener("pointermove", (e) => { if (e.pointerId === id) upd(e); });
+      const end = (e) => { if (e.pointerId !== id) return; id = null; knob.style.transform = ""; cb(0, 0); };
+      elm.addEventListener("pointerup", end);
+      elm.addEventListener("pointercancel", end);
+    }
+    stick(ui.stL, (x, y) => { S.sticks.lx = x; S.sticks.ly = y; });
+    stick(ui.stR, (x, y) => { S.sticks.rx = x; S.sticks.ry = y; });
+
+    /* teclado */
+    const KEYS = new Set(["KeyW", "KeyA", "KeyS", "KeyD", "KeyQ", "KeyE", "KeyR", "KeyF", "ArrowUp", "ArrowDown",
+                          "ArrowLeft", "ArrowRight", "ShiftLeft", "ShiftRight", "Digit1", "Digit2", "Escape", "Space"]);
+    const typing = (t) => t && (t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable ||
+                               (t.tagName === "INPUT" && !["range", "checkbox", "button"].includes(t.type)));
+    window.addEventListener("keydown", (e) => {
+      if (!S.on || typing(e.target) || !KEYS.has(e.code) || e.ctrlKey || e.metaKey || e.altKey) return;
+      e.preventDefault();
+      if (e.repeat && !e.code.startsWith("Key") && !e.code.startsWith("Arrow")) return;
+      if (e.code === "Digit1") setCam("fpv");
+      else if (e.code === "Digit2") setCam("chase");
+      else if (e.code === "Escape") { S.pick = null; syncPanel(); }
+      else if (e.code === "Space") { if (S.mode !== "manual") { S.paused = !S.paused; syncPanel(); } }
+      else S.keys.add(e.code);
+    });
+    window.addEventListener("keyup", (e) => S.keys.delete(e.code));
+    window.addEventListener("blur", () => S.keys.clear());
+
+    /* ratón sobre la vista: arrastrar para mirar, rueda para acercar */
+    let dragLast = null;
+    view.on("drag", (e) => {
+      if (!S.on) return;
+      e.stopPropagation();
+      if (e.action === "start") { dragLast = [e.x, e.y]; return; }
+      if (!dragLast) return;
+      const dx = e.x - dragLast[0], dy = e.y - dragLast[1];
+      dragLast = e.action === "end" ? null : [e.x, e.y];
+      if (S.mode === "orbit") { S.orbit.ang = wrap360(S.orbit.ang - dx * 0.25); adjustAlt(dy * 0.25); }
+      else { S.heading = wrap360(S.heading + dx * 0.2); S.pitch = clamp(S.pitch - dy * 0.15, -90, 30); }
+    });
+    view.on("mouse-wheel", (e) => {
+      if (!S.on) return;
+      e.stopPropagation();
+      const f = Math.exp(clamp(e.deltaY, -300, 300) * 0.0015);
+      if (S.mode === "orbit") S.orbit.r = clamp(S.orbit.r * f, 10, 2000);
+      else if (S.cam === "chase") { S.dist = clamp(S.dist * f, 3, 80); lastCam = null; }
+      else adjustAlt(-Math.sign(e.deltaY) * Math.max(1, (S.z - S.ground) * 0.08));
+      syncPanel(true);
+    });
+    ["double-click", "hold", "key-down", "key-up"].forEach((ev) => view.on(ev, (e) => { if (S.on) e.stopPropagation(); }));
+
+    /* clic para marcar ruta o centro de órbita */
+    view.on("immediate-click", (e) => {
+      if (!S.on || !S.pick) return;
+      e.stopPropagation();
+      let p = e.mapPoint;
+      if (!p) { try { p = view.toMap({ x: e.x, y: e.y }); } catch (err) {} }
+      if (!p) { toast("Haz clic sobre el terreno o sobre el modelo."); return; }
+      if (S.pick === "route") { S.route.wps.push({ x: p.x, y: p.y }); drawRoute(); }
+      else { setOrbitCenter({ x: p.x, y: p.y, z: p.z }, null); S.pick = null; }
+      syncPanel();
+    });
+
+    /* ---------- entrar / salir ---------- */
+    async function enter() {
+      if (S.on) return;
+      S.on = true;
+      if (!view.map.layers.includes(lyr)) view.map.addMany([lyrG, lyr]);
+      const cam = view.camera, c = view.center || cam.position;
+      S.x = c.x; S.y = c.y;
+      S.ground = groundAt(S.x, S.y);
+      const camAgl = (cam.position.z || 0) - S.ground;
+      S.agl = clamp(Math.round(camAgl * 0.25), 10, 150);
+      S.z = S.ground + S.agl; S.alt = S.z;
+      S.heading = wrap360(cam.heading || 0); S.pitch = -20;
+      Object.assign(S, { vF: 0, vR: 0, yawRate: 0, aF: 0, aR: 0, gs: 0, mode: "manual", cam: "chase", paused: false, pick: null });
+      S.route.flying = false;
+      S.keys.clear();
+      lastSig = ""; lastCam = null;
+      updateVisuals(); drawRoute(); syncPanel();
+      S.anim = true;
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(tick);
+      const [px, py, pz, hd, tl] = camFor();
+      try {
+        await view.goTo(new Camera({ position: new Point({ x: px, y: py, z: pz, spatialReference: sr }), heading: hd, tilt: tl, fov: cam.fov }), { duration: 1800 });
+      } catch (e) {}
+      S.anim = false; S.lastT = 0; lastCam = null;
+      if (S.on) toast("Dron en vuelo: W A S D para moverte, R / F para subir o bajar, arrastra para mirar.");
+    }
+    function exit() {
+      if (!S.on) return;
+      S.on = false; S.anim = false;
+      cancelAnimationFrame(raf);
+      S.keys.clear(); S.pick = null; S.route.flying = false;
+      Object.assign(S.sticks, { lx: 0, ly: 0, rx: 0, ry: 0 });
+      view.map.removeMany([lyr, lyrG]);
+      syncPanel();
+    }
+
+    syncPanel();
+    return {
+      enter, exit,
+      isOn: () => S.on,
+      isPicking: () => S.on && !!S.pick,
+      focusOn: async (ex) => { if (!S.on) return false; S.mode = "orbit"; S.paused = false; S.pick = null; S.route.flying = false; const ok = await orbitExtent(ex); syncPanel(); return ok; },
+      _state: S
+    };
+  }
+  /* ===== DRON:FIN ===== */
 
   /* =================== cabecera =================== */
   $("#btnLink").onclick = () => {
